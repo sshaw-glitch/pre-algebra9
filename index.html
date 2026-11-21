@@ -173,7 +173,8 @@ svg.graph { display: block; width: 100%; height: auto; border-radius: 8px; }
   <div class="card who" id="who">
     <label for="sname">Your name</label>
     <input id="sname" type="text" maxlength="60" autocomplete="name" placeholder="First and last name">
-    <span class="sync" id="sync"></span>
+    <button type="button" class="btn" id="send">Send my results to my teacher</button>
+    <span class="sync" id="sync" aria-live="polite"></span>
   </div>
 
   <section class="stage">
@@ -202,7 +203,6 @@ svg.graph { display: block; width: 100%; height: auto; border-radius: 8px; }
     </div>
     <div class="results" id="results" hidden></div>
   </section>
-  <section class="card teacher" id="teacher" hidden></section>
 </div>
 
 <script>
@@ -515,70 +515,43 @@ svg.graph { display: block; width: 100%; height: auto; border-radius: 8px; }
   });
 
   render();
-  // ---------- results collection (shared db) ----------
-  var syncEl = document.getElementById("sync"), nameEl = document.getElementById("sname");
-  var dbRef = null, uid = null, userNS = null, syncTimer = null, lastSent = "";
+  // ---------- results collection (Google Form) ----------
+  var FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeni96aTfsz3z1rWyF9fYFYFD8NLjvBJCA_CD5uK2BORch-rg/formResponse";
+  var F_NAME = "entry.711275084", F_SCORE = "entry.1948245088", F_ANS = "entry.1424329923";
+  var syncEl = document.getElementById("sync"), nameEl = document.getElementById("sname"), sendBtn = document.getElementById("send");
   nameEl.value = state.name || "";
   function setSync(t) { syncEl.textContent = t; }
-  function payload() {
-    var t = totals(), ans = {};
-    Object.keys(state.answers).forEach(function (k) { var a = state.answers[k]; ans[k] = [a.b === null ? -1 : a.b, a.m === null ? -1 : a.m]; });
-    return { name: (state.name || "").trim(), done: t.done, right: t.right, steps: t.steps, answers: ans, updatedAt: new Date().toISOString() };
+  // One entry per question: "7:RW" = question 7, b right, m wrong. R = right, W = wrong, - = not answered.
+  function mark(a, which, q) { var v = a ? a[which] : null; if (v === null || v === undefined) return "-"; return v === q[which + "Ans"] ? "R" : "W"; }
+  function answersString() {
+    return BANK.map(function (q) { var a = state.answers[q.id]; return q.id + ":" + mark(a, "b", q) + mark(a, "m", q); }).join(" ");
   }
-  function pushNow() {
-    if (!dbRef || !uid) return;
-    var p = payload(); if (!p.name) { setSync("Enter your name so your teacher can see your results."); return; }
-    var sig = JSON.stringify([p.name, p.answers]); if (sig === lastSent) return;
-    dbRef.doc(uid).set(p).then(function () { lastSent = sig; setSync("Saved for your teacher"); }, function () { setSync("Could not save to your teacher right now."); });
+  function send() {
+    var name = (state.name || "").trim();
+    if (!name) { setSync("Type your name first."); nameEl.focus(); return; }
+    var t = totals();
+    if (t.steps === 0) { setSync("Answer at least one question first."); return; }
+    var body = new URLSearchParams();
+    body.set(F_NAME, name);
+    body.set(F_SCORE, t.right + " right of " + t.steps + " answered (" + t.done + " of 100 finished)");
+    body.set(F_ANS, answersString());
+    sendBtn.disabled = true; setSync("Sending…");
+    fetch(FORM_URL, { method: "POST", mode: "no-cors", body: body }).then(function () {
+      sendBtn.disabled = false;
+      setSync("Sent to your teacher at " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + ".");
+    }, function () {
+      sendBtn.disabled = false; setSync("Could not send. Check your internet and try again.");
+    });
   }
-  function queueSync() { clearTimeout(syncTimer); syncTimer = setTimeout(pushNow, 800); }
-  nameEl.addEventListener("input", function () { state.name = nameEl.value; save(); queueSync(); });
-  var _save = save; save = function () { _save(); queueSync(); };
-
-  function initDb() {
-    if (!window.claude || !claude.use) { setSync("Results are saved on this device only."); return; }
-    setSync("Connecting…");
-    Promise.all([claude.use("db"), claude.use("user")]).then(function (r) {
-      var db = r[0]; userNS = r[1];
-      if (!db || !userNS) { setSync("Results are saved on this device only (sign in to share them with your teacher)."); return; }
-      return Promise.resolve(userNS.id()).then(function (id) {
-        if (!id) { setSync("Results are saved on this device only (sign in to share them with your teacher)."); return; }
-        uid = id; dbRef = db.collection("results");
-        setSync(state.name ? "Saving for your teacher…" : "Enter your name so your teacher can see your results.");
-        pushNow();
-        if (userNS.canEdit && userNS.canEdit()) teacherView(db);
-      });
-    }).catch(function () { setSync("Results are saved on this device only."); });
-  }
-
-  function teacherView(db) {
-    var box = document.getElementById("teacher"), tm = null;
-    box.hidden = false; box.innerHTML = "<h2>Class results (teacher view)</h2><p>Loading…</p>";
-    tm = setTimeout(function () { box.innerHTML += "<p>Still trying to reach the results. They may be out of date.</p>"; }, 10000);
-    function esc(x) { return String(x).replace(/[&<>"]/g, function (c) { return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
-    db.collection("results").onSnapshot(function (snap) {
-      clearTimeout(tm);
-      var rows = snap.docs.map(function (d) { return d.data(); }).filter(Boolean);
-      rows.sort(function (a, b) { return String(a.name || "").localeCompare(String(b.name || "")); });
-      if (!rows.length) { box.innerHTML = "<h2>Class results (teacher view)</h2><p>No students have started yet.</p>"; return; }
-      var miss = {}, tot = {};
-      var body = rows.map(function (r) {
-        var an = r.answers || {}, bw = 0, mw = 0;
-        Object.keys(an).forEach(function (k) {
-          var q = BANK[+k - 1]; if (!q) return; var a = an[k];
-          if (a[0] >= 0) { tot[k + "b"] = (tot[k + "b"] || 0) + 1; if (a[0] !== q.bAns) { bw++; miss[k + "b"] = (miss[k + "b"] || 0) + 1; } }
-          if (a[1] >= 0) { tot[k + "m"] = (tot[k + "m"] || 0) + 1; if (a[1] !== q.mAns) { mw++; miss[k + "m"] = (miss[k + "m"] || 0) + 1; } }
-        });
-        var pct = r.steps ? Math.round(100 * r.right / r.steps) + "%" : "–";
-        var when = r.updatedAt ? new Date(r.updatedAt).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "";
-        return "<tr><td>" + esc(r.name || "(no name)") + "</td><td>" + (r.done || 0) + " / 100</td><td>" + (r.right || 0) + " / " + (r.steps || 0) + "</td><td>" + pct + "</td><td>" + bw + "</td><td>" + mw + "</td><td>" + esc(when) + "</td></tr>";
-      }).join("");
-      var hard = Object.keys(miss).filter(function (k) { return tot[k] >= 2; }).sort(function (a, b) { return miss[b] / tot[b] - miss[a] / tot[a]; }).slice(0, 5)
-        .map(function (k) { var n = +k.slice(0, -1); return "#" + n + (k.slice(-1) === "b" ? " (b)" : " (m)") + ": " + Math.round(100 * miss[k] / tot[k]) + "% missed"; });
-      box.innerHTML = "<h2>Class results (teacher view)</h2><div class=\"scroll\"><table><thead><tr><th>Student</th><th>Finished</th><th>Right</th><th>Accuracy</th><th>b missed</th><th>m missed</th><th>Updated</th></tr></thead><tbody>" + body + "</tbody></table></div>" +
-        (hard.length ? "<p>Most-missed steps (question number in the By level order): " + hard.join(" · ") + "</p>" : "");
-    }, function () { clearTimeout(tm); box.innerHTML = "<h2>Class results (teacher view)</h2><p>Could not load results.</p>"; });
-  }
-  initDb();
+  sendBtn.addEventListener("click", send);
+  nameEl.addEventListener("input", function () { state.name = nameEl.value; save(); });
+  // Send automatically once, when a student finishes all 100 questions.
+  var _save = save;
+  save = function () {
+    _save();
+    var t = totals();
+    if (t.done < 100) { if (state.autoSent) { state.autoSent = false; _save(); } }
+    else if (!state.autoSent && (state.name || "").trim()) { state.autoSent = true; _save(); send(); }
+  };
 })();
 </script>

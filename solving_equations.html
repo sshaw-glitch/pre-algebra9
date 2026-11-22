@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Solving Equations in 5 Steps</title>
+<style>
+:root{--bg:#f3f6fb;--surface:#fff;--ink:#14213d;--muted:#5a6688;--line:#d8dfee;--accent:#2457c5;--accent-soft:#e3ebfb;--accent-ink:#fff;--good:#1b7a45;--good-soft:#def3e6;--bad:#b3261e;--bad-soft:#fbe5e3;--warn:#9a5b00;--warn-soft:#fbecd2;--font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+@media (prefers-color-scheme:dark){:root{--bg:#0e1526;--surface:#161e33;--ink:#e8edf9;--muted:#9aa7c7;--line:#2a3556;--accent:#7ea6ff;--accent-soft:#1f2e55;--accent-ink:#0e1526;--good:#5fd38d;--good-soft:#15352a;--bad:#ff8a80;--bad-soft:#3d1f22;--warn:#f0b45a;--warn-soft:#3b2e14;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--font);padding:20px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px))}
+.shell{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1,h2{margin:0}
+.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:10px 24px}
+.top h1{font-size:clamp(1.5rem,2.4vw + 1rem,2.1rem);line-height:1.1}
+.top p{margin:4px 0 0;color:var(--muted)}
+.stats{display:flex;flex-wrap:wrap;gap:8px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 12px;min-width:88px}
+.stat b{display:block;font-size:1.2rem;font-variant-numeric:tabular-nums}
+.stat span{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+.who{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 16px}
+.who label{font-weight:600}
+.who input{font:500 1rem var(--font);padding:9px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);flex:1 1 180px;max-width:280px;min-width:0}
+.sync{color:var(--muted);font-size:.85rem}
+.qhead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 12px;margin-bottom:10px}
+.qnum{font-weight:700;font-size:1.1rem}
+.level{font-size:.78rem;color:var(--accent);background:var(--accent-soft);padding:3px 10px;border-radius:999px;font-weight:600}
+.eq{font-size:clamp(1.4rem,3vw + .8rem,2rem);font-weight:700;padding:14px 16px;background:var(--accent-soft);border:2px solid var(--accent);border-radius:12px;color:var(--accent);font-variant-numeric:tabular-nums;text-align:center;overflow-wrap:anywhere}
+details{margin:12px 0 4px;font-size:.9rem;color:var(--muted)}
+summary{cursor:pointer;font-weight:600;color:var(--ink)}
+details p{margin:6px 0}
+.row{display:flex;flex-direction:column;gap:6px;padding:12px 0;border-top:1px solid var(--line)}
+.row.off{opacity:.45}
+.row label{font-size:.98rem}
+.inrow{display:flex;gap:8px;flex-wrap:wrap}
+.inrow input{flex:1 1 200px;min-width:0;font:600 1.1rem var(--font);padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+.inrow input:focus{border-color:var(--accent);outline:none}
+.val{font-weight:700;font-size:1.1rem;color:var(--good);background:var(--good-soft);border-radius:10px;padding:8px 12px;font-variant-numeric:tabular-nums}
+.fb{border-radius:10px;padding:9px 13px;font-size:.93rem;border:1px solid}
+.fb.bad{background:var(--bad-soft);border-color:var(--bad)}
+.fb.good{background:var(--good-soft);border-color:var(--good)}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;padding:10px 20px;font:600 1rem var(--font);cursor:pointer;min-height:46px}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn:disabled{opacity:.6;cursor:default}
+.btn:focus-visible,.cell:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.done{display:flex;flex-direction:column;gap:10px;align-items:flex-start;border-top:1px solid var(--line);padding-top:12px}
+.lowerhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
+.lowerhead h2{font-size:1.1rem}
+.map{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:5px;max-width:520px}
+.cell{aspect-ratio:1;border-radius:6px;border:1.5px solid var(--line);background:transparent;color:var(--muted);font:600 .72rem var(--font);cursor:pointer;padding:0}
+.cell:disabled{opacity:.4;cursor:default}
+.cell.good{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.cell.warn{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.cell.part{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.cell.cur{box-shadow:0 0 0 2.5px var(--ink)}
+.key{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.8rem;color:var(--muted);margin-top:10px}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <div><h1>Solving Equations in 5 Steps</h1><p>Each answer must be correct before the next box opens.</p></div>
+    <div class="stats" id="stats" aria-live="polite"></div>
+  </header>
+  <div class="card who">
+    <label for="sname">Your name</label>
+    <input id="sname" type="text" maxlength="60" autocomplete="name" placeholder="First and last name">
+    <button type="button" class="btn" id="send">Send my results to my teacher</button>
+    <span class="sync" id="sync" aria-live="polite"></span>
+  </div>
+  <section class="card">
+    <div class="qhead"><span class="qnum" id="qnum"></span><span class="level" id="level"></span></div>
+    <div class="eq" id="eq"></div>
+    <details>
+      <summary>How to type your answers</summary>
+      <p>Type equations like <b>5x+10=30</b>. Spaces don't matter. Use <b>-</b> for minus. Write <b>x</b> (not 1x) when the number in front is 1.</p>
+      <p>Keep each step to just that step. Don't skip ahead.</p>
+      <p>Step 5 example: for <b>2(x + 1) + 3x = 17</b> with x = 3, type <b>2(3+1)+3(3)=17</b>. A number right before x becomes a number right before parentheses. Put negative answers in parentheses, like <b>5(-4)</b>.</p>
+    </details>
+    <div id="rows"></div>
+  </section>
+  <section class="card">
+    <div class="lowerhead"><h2>All 100 problems</h2><button type="button" class="btn ghost" id="restart">Restart</button></div>
+    <div class="map" id="map"></div>
+    <div class="key"><span>Green: every step right on the first try</span><span>Yellow: needed retries</span><span>Blue: in progress</span></div>
+  </section>
+</div>
+<script>
+(function () {
+  // ---------- teacher setup: paste your Google Form link and field IDs here ----------
+  var FORM_URL = "PASTE_FORM_URL_HERE";   // ends in /formResponse
+  var F_NAME = "entry.NAME", F_SCORE = "entry.SCORE", F_ANS = "entry.ANSWERS";
+
+  var M = "\u2212", LEVELS = ["Level 1: positive numbers", "Level 2: with negatives", "Level 3: negative outside the parentheses"];
+  var LABELS = ["Distribute in parentheses (type NA if there are none)", "Combine like terms", "Isolate the x-term", "Divide by the coefficient of x", "Check: rewrite the original equation with your answer in place of every x"];
+  var PH = ["example: 3x+6+2x+4=30, or NA", "example: 5x+10=30", "example: 5x=20", "example: x=4", "example: 2(3+1)+3(3)=17"];
+  var HINTS = ["Multiply the number outside the parentheses by each term inside. Leave everything else as it is. If there are no parentheses, type NA.",
+    "Add the x-terms together and add the plain numbers together on the left side. The right side stays the same.",
+    "Add or subtract the plain number on both sides so only the x-term is left on the left side.",
+    "Divide both sides by the number in front of x.",
+    "Copy the original equation exactly, but replace every x with your answer. Put a negative answer in parentheses. A number right before an x becomes a number right before parentheses, like 5x becomes 5(4)."];
+
+  // ---------- question bank (same 100 problems for every student) ----------
+  function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  function ri(r, lo, hi) { return lo + Math.floor(r() * (hi - lo + 1)); }
+  function shuffle(a, r) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(r() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function num(n) { return n < 0 ? M + Math.abs(n) : "" + n; }
+  function tstr(c, x) { return x ? (c === 1 ? "x" : c === -1 ? "-x" : c + "x") : "" + c; }
+  function tl(a) { return a.slice().sort().join(","); }
+  function key(l, r) { return tl(l) + "|" + tl(r); }
+  function termTxt(t, first) {
+    var v = t.p ? t.a : t.c, neg = v < 0, ab = Math.abs(v), body;
+    if (t.p) body = ab + "(x " + (t.b < 0 ? M : "+") + " " + Math.abs(t.b) + ")"; else body = t.x ? (ab === 1 ? "x" : ab + "x") : "" + ab;
+    return first ? (neg ? M : "") + body : " " + (neg ? M : "+") + " " + body;
+  }
+  function side(list) { return list.map(function (t, i) { return termTxt(t, i === 0); }).join(""); }
+  function build(id) {
+    var r = rng(id * 104729 + 7), lvl = id <= 34 ? 0 : id <= 67 ? 1 : 2, par = id % 3 !== 0, p, A, K, e, x0, items;
+    for (var n = 0; n < 300; n++) {
+      var s = function (v) { return lvl > 0 && r() < 0.5 ? -v : v; };
+      x0 = s(ri(r, 1, 8)); var a = lvl === 2 ? s(ri(r, 2, 6)) : ri(r, 2, 6), b = s(ri(r, 1, 6)), c = s(ri(r, 1, 5)), d = s(ri(r, 1, 9)), c2 = s(ri(r, 1, 5)), d2 = s(ri(r, 1, 9));
+      items = par ? [{ p: 1, a: a, b: b }, { x: 1, c: c }, { x: 0, c: d }] : [{ x: 1, c: c }, { x: 0, c: d }, { x: 1, c: c2 }, { x: 0, c: d2 }];
+      A = par ? a + c : c + c2; K = par ? a * b + d : d + d2; e = A * x0 + K;
+      if (Math.abs(A) > 1 && K !== 0 && e !== 0) break;
+    }
+    items = shuffle(items, r);
+    var D = []; items.forEach(function (t) { if (t.p) { D.push({ x: 1, c: t.a }); D.push({ x: 0, c: t.a * t.b }); } else D.push(t); });
+    var dTxt = D.map(function (t, i) { return termTxt(t, i === 0); }).join("");
+    var keys = [par ? key(D.map(function (t) { return tstr(t.c, t.x); }), ["" + e]) : "NA", key([tstr(A, 1), tstr(K, 0)], ["" + e]), key([tstr(A, 1)], ["" + (e - K)]), key(["x"], ["" + x0])];
+    var eq = side(items) + " = " + num(e), eqN = eq.replace(/\u2212/g, "-").replace(/\s+/g, ""), ab = Math.abs(x0), dd = x0 < 0 ? "-" + ab : "" + ab, src = "";
+    for (var k = 0; k < eqN.length; k++) {
+      var ch = eqN[k]; if (ch !== "x") { src += ch.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); continue; }
+      var pv = k ? eqN[k - 1] : "";
+      if (/\d/.test(pv)) src += x0 < 0 ? "(?:\\*\\(" + dd + "\\)|\\(" + dd + "\\))" : "(?:\\*\\(?" + dd + "\\)?|\\(" + dd + "\\))";
+      else if (x0 >= 0) src += "\\(?" + dd + "\\)?";
+      else src += pv === "(" || pv === "" ? "\\(?" + dd + "\\)?" : "\\(" + dd + "\\)";
+    }
+    var subTxt = eq.replace(/x/g, function (m, off) {
+      var pr = eq.slice(0, off).replace(/\s+$/, "").slice(-1), v = num(x0);
+      if (/\d/.test(pr)) return "(" + v + ")";
+      if (x0 >= 0) return v;
+      return pr === "(" || pr === "" ? v : "(" + v + ")";
+    });
+    return { id: id, lvl: lvl, par: par, e: e, keys: keys, re: new RegExp("^" + src + "$"), eq: eq,
+      show: [par ? dTxt + " = " + num(e) : "NA", side([{ x: 1, c: A }, { x: 0, c: K }]) + " = " + num(e), side([{ x: 1, c: A }]) + " = " + num(e - K), "x = " + num(x0), subTxt] };
+  }
+  var BANK = []; for (var i = 1; i <= 100; i++) BANK.push(build(i));
+
+  // ---------- checking typed answers ----------
+  function parseSide(s) {
+    if (!s) return null;
+    var ts = s.replace(/-/g, "+-").split("+").filter(function (t) { return t !== ""; });
+    if (!ts.length) return null;
+    for (var k = 0; k < ts.length; k++) { if (!/^-?\d*x$|^-?\d+$/.test(ts[k])) return null; ts[k] = ts[k].replace(/^(-?)1x$/, "$1x"); }
+    return ts;
+  }
+  function check(q, i, raw) {
+    var v = raw.toLowerCase().replace(/[\u2212\u2013]/g, "-").replace(/\s+/g, "");
+    if (!v) return false;
+    if (i === 4) { var bal = 0; for (var c = 0; c < v.length; c++) { if (v[c] === "(") bal++; else if (v[c] === ")" && --bal < 0) return false; } return bal === 0 && q.re.test(v); }
+    var na = v === "na" || v === "n/a";
+    if (i === 0 && !q.par) return na;
+    if (na) return false;
+    var p = v.split("="); if (p.length !== 2) return false;
+    var l = parseSide(p[0]), rr = parseSide(p[1]); if (!l || !rr) return false;
+    return key(l, rr) === q.keys[i];
+  }
+
+  // ---------- state ----------
+  var KEY = "solveEq.v1", state = { answers: {}, pos: 0, name: "", autoSent: false };
+  try { var raw = localStorage.getItem(KEY); if (raw) { var sv = JSON.parse(raw); if (sv && sv.answers) state = Object.assign(state, sv); } } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  var ui = { qid: null, msg: "", val: "", focus: false };
+  function cur() { state.pos = Math.max(0, Math.min(99, state.pos)); return BANK[state.pos]; }
+  function ans(q) { return state.answers[q.id] || (state.answers[q.id] = { d: [0, 0, 0, 0, 0], w: [0, 0, 0, 0, 0] }); }
+  function complete(q) { var a = state.answers[q.id]; return !!a && a.d.indexOf(0) < 0; }
+  function totals() {
+    var done = 0, right = 0, steps = 0;
+    BANK.forEach(function (q) { var a = state.answers[q.id]; if (!a) return; if (complete(q)) done++; a.d.forEach(function (d, i) { if (d) { steps++; if (a.w[i] === 0) right++; } }); });
+    return { done: done, right: right, steps: steps };
+  }
+
+  // ---------- rendering ----------
+  var $ = function (id) { return document.getElementById(id); };
+  function render() {
+    var q = cur(), a = ans(q); if (ui.qid !== q.id) { ui.qid = q.id; ui.msg = ""; ui.val = ""; }
+    $("qnum").textContent = "Problem " + q.id + " of 100"; $("level").textContent = LEVELS[q.lvl]; $("eq").textContent = "Solve: " + q.eq;
+    var fi = a.d.indexOf(0), h = "";
+    LABELS.forEach(function (L, i) {
+      var done = a.d[i], act = i === fi;
+      h += '<div class="row' + (done || act ? "" : " off") + '"><label for="in' + i + '"><b>' + (i + 1) + ".</b> " + L + "</label>";
+      if (done) h += '<div class="val">' + q.show[i] + " \u2713</div>";
+      else h += '<div class="inrow"><input id="in' + i + '" data-i="' + i + '" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="' + PH[i] + '"' + (act ? "" : " disabled") + '><button type="button" class="btn go" data-i="' + i + '"' + (act ? "" : " disabled") + ">Check</button></div>";
+      if (act && ui.msg) h += '<div class="fb bad">' + ui.msg + "</div>";
+      h += "</div>";
+    });
+    if (fi < 0) h += '<div class="done"><div class="fb good"><b>Solved!</b> ' + q.show[3] + "</div>" + (state.pos < 99 ? '<button type="button" class="btn" id="next">Next problem</button>' : "<p>That was the last problem.</p>") + "</div>";
+    $("rows").innerHTML = h;
+    var inp = fi >= 0 && $("in" + fi); if (inp) { inp.value = ui.val; if (ui.focus) inp.focus(); }
+    var t = totals();
+    $("stats").innerHTML = '<div class="stat"><b>' + t.done + ' / 100</b><span>Finished</span></div><div class="stat"><b>' + t.right + " / " + t.steps + '</b><span>First-try right</span></div><div class="stat"><b>' + (t.steps ? Math.round(100 * t.right / t.steps) + "%" : "\u2013") + "</b><span>First-try rate</span></div>";
+    var open = BANK.findIndex(function (b) { return !complete(b); }); if (open < 0) open = 99;
+    $("map").innerHTML = BANK.map(function (b, i) {
+      var x = state.answers[b.id], cls = "cell";
+      if (complete(b)) cls += x.w.every(function (w) { return w === 0; }) ? " good" : " warn"; else if (x && x.d.indexOf(1) >= 0) cls += " part";
+      if (i === state.pos) cls += " cur";
+      return '<button type="button" class="' + cls + '" data-pos="' + i + '"' + (i > open ? " disabled" : "") + ' aria-label="Problem ' + b.id + '">' + b.id + "</button>";
+    }).join("");
+  }
+  function submit(i) {
+    var q = cur(), a = ans(q), inp = $("in" + i); if (!inp || !inp.value.trim()) return;
+    if (check(q, i, inp.value)) { a.d[i] = 1; ui.msg = ""; ui.val = ""; }
+    else {
+      a.w[i]++; ui.val = inp.value; ui.msg = "Not yet. Try again.";
+      if (a.w[i] >= 2) ui.msg += "<br><b>Hint:</b> " + HINTS[i];
+      if (a.w[i] >= 4) ui.msg += "<br><b>The answer is:</b> " + q.show[i] + " (type it in to keep going)";
+    }
+    ui.focus = true; save(); render();
+  }
+  function go(pos) { state.pos = pos; ui.qid = null; ui.focus = true; save(); render(); window.scrollTo({ top: 0, behavior: "smooth" }); }
+  $("rows").addEventListener("click", function (e) {
+    var g = e.target.closest(".go"); if (g && !g.disabled) return submit(+g.dataset.i);
+    if (e.target.closest("#next")) go(state.pos + 1);
+  });
+  $("rows").addEventListener("keydown", function (e) { if (e.key === "Enter" && e.target.matches("input[data-i]")) { e.preventDefault(); submit(+e.target.dataset.i); } });
+  $("rows").addEventListener("input", function (e) { if (e.target.matches("input[data-i]")) ui.val = e.target.value; });
+  $("map").addEventListener("click", function (e) { var c = e.target.closest(".cell"); if (c && !c.disabled) go(+c.dataset.pos); });
+  var rbtn = $("restart"), rtimer = null;
+  rbtn.addEventListener("click", function () {
+    if (rbtn.dataset.armed) { clearTimeout(rtimer); delete rbtn.dataset.armed; rbtn.textContent = "Restart"; state.answers = {}; state.pos = 0; ui.qid = null; save(); render(); window.scrollTo({ top: 0 }); }
+    else { rbtn.dataset.armed = "1"; rbtn.textContent = "Tap again to clear all answers"; rtimer = setTimeout(function () { delete rbtn.dataset.armed; rbtn.textContent = "Restart"; }, 4000); }
+  });
+  render();
+
+  // ---------- results collection (Google Form) ----------
+  var syncEl = $("sync"), nameEl = $("sname"), sendBtn = $("send");
+  nameEl.value = state.name || "";
+  function setSync(t) { syncEl.textContent = t; }
+  // "7:RRWRR" = problem 7, five steps. R = right on the first try, W = needed retries, - = not reached yet.
+  function answersString() {
+    return BANK.map(function (q) { var a = state.answers[q.id]; return q.id + ":" + [0, 1, 2, 3, 4].map(function (i) { return !a || !a.d[i] ? "-" : a.w[i] === 0 ? "R" : "W"; }).join(""); }).join(" ");
+  }
+  function send() {
+    var name = (state.name || "").trim();
+    if (!name) { setSync("Type your name first."); nameEl.focus(); return; }
+    var t = totals(); if (t.steps === 0) { setSync("Finish at least one step first."); return; }
+    if (FORM_URL.indexOf("PASTE") === 0) { setSync("Teacher: connect your Google Form first."); return; }
+    var body = new URLSearchParams();
+    body.set(F_NAME, name); body.set(F_SCORE, t.right + " first-try right of " + t.steps + " steps (" + t.done + " of 100 problems finished)"); body.set(F_ANS, answersString());
+    sendBtn.disabled = true; setSync("Sending\u2026");
+    fetch(FORM_URL, { method: "POST", mode: "no-cors", body: body }).then(function () {
+      sendBtn.disabled = false; setSync("Sent to your teacher at " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + ".");
+    }, function () { sendBtn.disabled = false; setSync("Could not send. Check your internet and try again."); });
+  }
+  sendBtn.addEventListener("click", send);
+  nameEl.addEventListener("input", function () { state.name = nameEl.value; save(); });
+  var _save = save;
+  save = function () {
+    _save(); var t = totals();
+    if (t.done < 100) { if (state.autoSent) { state.autoSent = false; _save(); } }
+    else if (!state.autoSent && (state.name || "").trim()) { state.autoSent = true; _save(); send(); }
+  };
+})();
+</script>
+</body>
+</html>

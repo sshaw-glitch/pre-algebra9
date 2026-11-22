@@ -237,6 +237,13 @@ details p{margin:6px 0}
   // ---------- results collection (Google Form) ----------
   var syncEl = $("sync"), nameEl = $("sname"), sendBtn = $("send");
   nameEl.value = state.name || "";
+  // device code (random, not tied to identity) and active minutes, shown with each result
+  var DEV = (function () { try { var d = localStorage.getItem("deviceCode.v1"); if (!d) { d = Math.random().toString(16).slice(2, 8); localStorage.setItem("deviceCode.v1", d); } return d; } catch (e) { return "none"; } })();
+  var TKEY = KEY + ".sec", activeSec = 0, lastAct = Date.now();
+  try { activeSec = +localStorage.getItem(TKEY) || 0; } catch (e) {}
+  ["pointerdown", "keydown", "input"].forEach(function (ev) { window.addEventListener(ev, function () { lastAct = Date.now(); }, true); });
+  setInterval(function () { if (document.visibilityState === "visible" && Date.now() - lastAct < 60000) { activeSec++; if (activeSec % 10 === 0) { try { localStorage.setItem(TKEY, activeSec); } catch (e) {} } } }, 1000);
+  function extra() { try { localStorage.setItem(TKEY, activeSec); } catch (e) {} return " | device " + DEV + " | " + Math.round(activeSec / 60) + " min active"; }
   function setSync(t) { syncEl.textContent = t; }
   // "7:RRWRR" = problem 7, five steps. R = right on the first try, W = needed retries, - = not reached yet.
   function answersString() {
@@ -249,6 +256,7 @@ details p{margin:6px 0}
     if (FORM_URL.indexOf("PASTE") === 0) { setSync("Teacher: connect your Google Form first."); return; }
     var body = new URLSearchParams();
     body.set(F_NAME, name); body.set(F_SCORE, t.right + " first-try right of " + t.steps + " steps (" + t.done + " of 100 problems finished)"); body.set(F_ANS, answersString());
+    body.set(F_SCORE, body.get(F_SCORE) + extra());
     sendBtn.disabled = true; setSync("Sending\u2026");
     fetch(FORM_URL, { method: "POST", mode: "no-cors", body: body }).then(function () {
       sendBtn.disabled = false; setSync("Sent to your teacher at " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + ".");

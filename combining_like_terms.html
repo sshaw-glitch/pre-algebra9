@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Combining Like Terms Drill</title>
+<style>
+:root{--bg:#f3f6fb;--surface:#fff;--ink:#14213d;--muted:#5a6688;--line:#d8dfee;--accent:#2457c5;--accent-soft:#e3ebfb;--accent-ink:#fff;--good:#1b7a45;--good-soft:#def3e6;--bad:#b3261e;--bad-soft:#fbe5e3;--warn:#9a5b00;--warn-soft:#fbecd2;--font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+@media (prefers-color-scheme:dark){:root{--bg:#0e1526;--surface:#161e33;--ink:#e8edf9;--muted:#9aa7c7;--line:#2a3556;--accent:#7ea6ff;--accent-soft:#1f2e55;--accent-ink:#0e1526;--good:#5fd38d;--good-soft:#15352a;--bad:#ff8a80;--bad-soft:#3d1f22;--warn:#f0b45a;--warn-soft:#3b2e14;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--font);padding:20px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px))}
+.shell{max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1,h2{margin:0}
+.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:10px 24px}
+.top h1{font-size:clamp(1.5rem,2.4vw + 1rem,2.1rem);line-height:1.1}
+.top p{margin:4px 0 0;color:var(--muted)}
+.stats{display:flex;flex-wrap:wrap;gap:8px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 12px;min-width:88px}
+.stat b{display:block;font-size:1.2rem;font-variant-numeric:tabular-nums}
+.stat span{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.who{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 16px}
+.who label{font-weight:600}
+.who input{font:500 1rem var(--font);padding:9px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);flex:1 1 180px;max-width:280px;min-width:0}
+.sync{color:var(--muted);font-size:.85rem}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+.qcard,.panel{padding:18px}
+.qhead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 12px;margin-bottom:14px}
+.qnum{font-weight:700;font-size:1.1rem}
+.level{font-size:.78rem;color:var(--accent);background:var(--accent-soft);padding:3px 10px;border-radius:999px;font-weight:600}
+.expr{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:1.6rem;font-weight:700;min-height:64px;font-variant-numeric:tabular-nums}
+.chip{padding:8px 14px;border-radius:12px;border:2px solid}
+.chip.tx{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.chip.tc{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.op{color:var(--muted)}
+.legend{margin:14px 0 0;font-size:.85rem;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;border:2px solid;vertical-align:-1px;margin:0 4px 0 8px}
+.legend i.tx{background:var(--accent-soft);border-color:var(--accent)}
+.legend i.tc{background:var(--warn-soft);border-color:var(--warn)}
+.panel{display:flex;flex-direction:column;gap:14px}
+.steps{display:flex;gap:8px;flex-wrap:wrap}
+.st{font-size:.82rem;font-weight:600;padding:4px 12px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.st.on{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+.st.ok{color:var(--good);border-color:var(--good);background:var(--good-soft)}
+.st.no{color:var(--bad);border-color:var(--bad);background:var(--bad-soft)}
+.panel h2{font-size:1.3rem;line-height:1.25}
+.panel p{margin:4px 0 0;color:var(--muted);font-size:.92rem}
+.choices{display:flex;flex-direction:column;gap:8px}
+.choice{display:flex;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;background:var(--surface);color:var(--ink);border:1.5px solid var(--line);border-radius:10px;padding:10px 14px;font:600 1.15rem var(--font);min-height:48px}
+.choice .k{flex:none;width:26px;height:26px;border-radius:7px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-size:.8rem}
+.choice:hover:not(:disabled){border-color:var(--accent)}
+.choice:disabled{cursor:default}
+.choice.right{border-color:var(--good);background:var(--good-soft)}
+.choice.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.fb{border-radius:10px;padding:10px 14px;font-size:.95rem;border:1px solid}
+.fb.good{background:var(--good-soft);border-color:var(--good)}
+.fb.bad{background:var(--bad-soft);border-color:var(--bad)}
+.btn{align-self:flex-start;background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;padding:11px 20px;font:600 1rem var(--font);cursor:pointer;min-height:46px}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn:disabled{opacity:.6;cursor:default}
+.choice:focus-visible,.btn:focus-visible,.cell:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.lower{padding:18px;display:flex;flex-direction:column;gap:12px}
+.lowerhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px}
+.lower h2{font-size:1.1rem}
+.map{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:5px;max-width:520px}
+.cell{aspect-ratio:1;border-radius:6px;border:1.5px solid var(--line);background:transparent;color:var(--muted);font:600 .72rem var(--font);cursor:pointer;padding:0}
+.cell.good{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.cell.warn{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.cell.bad{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.cell.part{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.cell.cur{box-shadow:0 0 0 2.5px var(--ink)}
+.key{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.8rem;color:var(--muted)}
+@media (max-width:760px){.stage{grid-template-columns:minmax(0,1fr)}.expr{font-size:1.3rem}.qcard,.panel,.lower{padding:12px}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <a href="./" style="color:var(--accent,#2457c5);font-weight:600;text-decoration:none;align-self:flex-start">← All pages</a>
+  <header class="top">
+    <div><h1>Combining Like Terms Drill</h1><p>100 expressions. Add the <b>x-terms</b>, then add the <b>plain numbers</b>.</p></div>
+    <div class="stats" id="stats" aria-live="polite"></div>
+  </header>
+  <div class="card who">
+    <label for="sname">Your name</label>
+    <input id="sname" type="text" maxlength="60" autocomplete="name" placeholder="First and last name">
+    <button type="button" class="btn" id="send">Send my results to my teacher</button>
+    <span class="sync" id="sync" aria-live="polite"></span>
+  </div>
+  <section class="stage">
+    <div class="card qcard">
+      <div class="qhead"><span class="qnum" id="qnum"></span><span class="level" id="level"></span></div>
+      <div class="expr" id="expr"></div>
+      <p class="legend"><i class="tx"></i>x-terms<i class="tc"></i>plain numbers</p>
+    </div>
+    <div class="card panel" id="panel"></div>
+  </section>
+  <section class="card lower">
+    <div class="lowerhead"><h2>All 100 questions</h2><button type="button" class="btn ghost" id="restart">Restart</button></div>
+    <div class="map" id="map"></div>
+    <div class="key"><span>Green: both right</span><span>Yellow: one right</span><span>Red: both wrong</span><span>Blank: not answered</span></div>
+  </section>
+</div>
+<script>
+(function () {
+  // ---------- teacher setup: paste your Google Form link and field IDs here ----------
+  var FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdLYAVwEzvhdi5LHn5r8NGk0buz0xsTna9fDV0TbKr7FieKyg/formResponse";
+  var F_NAME = "entry.163001036", F_SCORE = "entry.1785029471", F_ANS = "entry.1778186495";
+
+  // ---------- question bank (same 100 questions for every student) ----------
+  var M = "\u2212", LEVELS = ["Level 1: all positive", "Level 2: with negatives", "Level 3: more terms"];
+  function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  function ri(r, lo, hi) { return lo + Math.floor(r() * (hi - lo + 1)); }
+  function shuffle(a, r) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(r() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function num(n) { return n < 0 ? M + Math.abs(n) : String(n); }
+  function xt(n) { return n === 1 ? "x" : n === -1 ? M + "x" : num(n) + "x"; }
+  function coef(r, lvl, isX) { var m = ri(r, 1, isX ? 9 : 12); if (lvl === 0) return m; return r() < 0.5 ? -m : m; }
+  function opts(ans, absSum, r) {
+    var seen = {}, c = [];
+    [ans + 1, ans - 1, ans + 2, ans - 2, -ans, absSum].forEach(function (v) { if (v !== ans && !seen[v]) { seen[v] = 1; c.push(v); } });
+    return shuffle(shuffle(c, r).slice(0, 4).concat([ans]), r);
+  }
+  function build(id) {
+    var r = rng(id * 7919 + 13), lvl = id <= 34 ? 0 : id <= 67 ? 1 : 2, nx = lvl === 2 ? 3 : 2, nc = lvl === 2 ? ri(r, 2, 3) : 2, terms, xs, cs, X, C;
+    for (var t = 0; t < 60; t++) {
+      terms = []; xs = []; cs = [];
+      for (var k = 0; k < nx; k++) xs.push(coef(r, lvl, true));
+      for (k = 0; k < nc; k++) cs.push(coef(r, lvl, false));
+      X = xs.reduce(function (a, b) { return a + b; }, 0); C = cs.reduce(function (a, b) { return a + b; }, 0);
+      if (X !== 0 && C !== 0) break;
+    }
+    xs.forEach(function (v) { terms.push({ x: 1, v: v }); }); cs.forEach(function (v) { terms.push({ x: 0, v: v }); });
+    terms = shuffle(terms, r);
+    var abs = function (a) { return a.reduce(function (s, v) { return s + Math.abs(v); }, 0); };
+    var xc = opts(X, abs(xs), r), cc = opts(C, abs(cs), r);
+    return { id: id, lvl: lvl, terms: terms, xs: xs, cs: cs, X: X, C: C, xc: xc, cc: cc, bAns: xc.indexOf(X), mAns: cc.indexOf(C) };
+  }
+  var BANK = []; for (var n = 1; n <= 100; n++) BANK.push(build(n));
+
+  // ---------- state ----------
+  var KEY = "combineLike.v1", state = { answers: {}, pos: 0, name: "", autoSent: false };
+  try { var raw = localStorage.getItem(KEY); if (raw) { var s = JSON.parse(raw); if (s && s.answers) state = Object.assign(state, s); } } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  var ui = { step: "b", qid: null };
+  function cur() { state.pos = Math.max(0, Math.min(99, state.pos)); return BANK[state.pos]; }
+  function ans(q) { return state.answers[q.id] || (state.answers[q.id] = { b: null, m: null }); }
+  function stepFor(q) { var a = state.answers[q.id]; return !a || a.b === null ? "b" : a.m === null ? "m" : "done"; }
+
+  // ---------- rendering ----------
+  var $ = function (id) { return document.getElementById(id); };
+  function chips(terms) {
+    return terms.map(function (t, i) {
+      var a = Math.abs(t.v), txt = t.x ? (a === 1 ? "x" : a + "x") : "" + a, cls = "chip " + (t.x ? "tx" : "tc");
+      return i === 0 ? '<span class="' + cls + '">' + (t.v < 0 ? M : "") + txt + "</span>" : '<span class="op">' + (t.v < 0 ? M : "+") + '</span><span class="' + cls + '">' + txt + "</span>";
+    }).join("");
+  }
+  function sumText(vals, total, fmt) { return vals.map(function (v, i) { return v < 0 && i > 0 ? "(" + num(v) + ")" : num(v); }).join(" + ") + " = " + fmt(total); }
+  function choiceBtns(list, fmt, ansI, picked, locked) {
+    return '<div class="choices">' + list.map(function (v, i) {
+      var cls = "choice"; if (locked) { if (i === ansI) cls += " right"; else if (i === picked) cls += " wrong"; }
+      return '<button type="button" class="' + cls + '" data-i="' + i + '"' + (locked ? " disabled" : "") + '><span class="k">' + (i + 1) + "</span>" + fmt(v) + "</button>";
+    }).join("") + "</div>";
+  }
+  function fb(ok, text) { return '<div class="fb ' + (ok ? "good" : "bad") + '"><b>' + (ok ? "Right!" : "Not quite.") + "</b> " + text + "</div>"; }
+  function stepChips(q, a) {
+    function c(label, v, ansI, active) { return '<span class="st ' + (v === null ? (active ? "on" : "") : v === ansI ? "ok" : "no") + '">' + label + "</span>"; }
+    return '<div class="steps">' + c("1 · x-terms", a.b, q.bAns, ui.step === "b" || ui.step === "bfb") + c("2 · plain numbers", a.m, q.mAns, ui.step === "m" || ui.step === "done") + "</div>";
+  }
+  function panelHTML(q, a) {
+    var h = stepChips(q, a), hasOne = q.xs.some(function (v) { return Math.abs(v) === 1; });
+    var xexp = "Add the numbers in front of x" + (hasOne ? " (x means 1x)" : "") + ": " + sumText(q.xs, q.X, num) + ", so <b>" + xt(q.X) + "</b>.";
+    var cexp = "Add the plain numbers: " + sumText(q.cs, q.C, num) + ".";
+    if (ui.step === "b") return h + '<div><h2>Add the x-terms (blue). What is the total?</h2><p>Combine only the terms that have x.</p></div>' + choiceBtns(q.xc, xt, q.bAns, null, false);
+    if (ui.step === "bfb") return h + "<div><h2>Add the x-terms (blue).</h2></div>" + choiceBtns(q.xc, xt, q.bAns, a.b, true) + fb(a.b === q.bAns, xexp) + '<button type="button" class="btn" id="next">Next: plain numbers</button>';
+    if (ui.step === "m") return h + '<div><h2>Add the plain numbers (orange). What is the total?</h2><p>Combine only the terms with no x.</p></div>' + choiceBtns(q.cc, num, q.mAns, null, false);
+    var simp = xt(q.X) + (q.C < 0 ? " " + M + " " + Math.abs(q.C) : " + " + q.C);
+    return h + "<div><h2>Add the plain numbers (orange).</h2></div>" + choiceBtns(q.cc, num, q.mAns, a.m, true) + fb(a.m === q.mAns, cexp) + '<div class="fb good">Simplified: <b>' + simp + "</b></div>" + (state.pos < 99 ? '<button type="button" class="btn" id="next">Next question</button>' : "<p>That was the last question.</p>");
+  }
+  function totals() {
+    var done = 0, right = 0, steps = 0;
+    BANK.forEach(function (q) { var a = state.answers[q.id]; if (!a) return; if (a.b !== null && a.m !== null) done++; if (a.b !== null) { steps++; if (a.b === q.bAns) right++; } if (a.m !== null) { steps++; if (a.m === q.mAns) right++; } });
+    return { done: done, right: right, steps: steps };
+  }
+  function render() {
+    var q = cur(); if (ui.qid !== q.id) { ui.qid = q.id; ui.step = stepFor(q); }
+    var a = state.answers[q.id] || { b: null, m: null };
+    $("qnum").textContent = "Question " + q.id + " of 100"; $("level").textContent = LEVELS[q.lvl];
+    $("expr").innerHTML = chips(q.terms); $("panel").innerHTML = panelHTML(q, a);
+    var t = totals();
+    $("stats").innerHTML = '<div class="stat"><b>' + t.done + ' / 100</b><span>Finished</span></div><div class="stat"><b>' + t.right + " / " + t.steps + '</b><span>Right answers</span></div><div class="stat"><b>' + (t.steps ? Math.round(100 * t.right / t.steps) + "%" : "–") + "</b><span>Accuracy</span></div>";
+    $("map").innerHTML = BANK.map(function (b, i) {
+      var x = state.answers[b.id], cls = "cell";
+      if (x && x.b !== null && x.m !== null) { var k = (x.b === b.bAns) + (x.m === b.mAns); cls += k === 2 ? " good" : k === 1 ? " warn" : " bad"; } else if (x && (x.b !== null || x.m !== null)) cls += " part";
+      if (i === state.pos) cls += " cur";
+      return '<button type="button" class="' + cls + '" data-pos="' + i + '" aria-label="Question ' + b.id + '">' + b.id + "</button>";
+    }).join("");
+  }
+  function pick(i) {
+    var a = ans(cur());
+    if (ui.step === "b") { a.b = i; ui.step = "bfb"; } else if (ui.step === "m") { a.m = i; ui.step = "done"; } else return;
+    save(); render(); var nx = $("next"); if (nx) nx.focus();
+  }
+  function advance() {
+    if (ui.step === "bfb") { ui.step = "m"; render(); } else if (ui.step === "done" && state.pos < 99) go(state.pos + 1);
+  }
+  function go(pos) { state.pos = pos; ui.qid = null; save(); render(); window.scrollTo({ top: 0, behavior: "smooth" }); }
+  $("panel").addEventListener("click", function (e) {
+    var c = e.target.closest(".choice"); if (c && !c.disabled) return pick(+c.dataset.i);
+    if (e.target.closest("#next")) advance();
+  });
+  $("map").addEventListener("click", function (e) { var c = e.target.closest(".cell"); if (c) go(+c.dataset.pos); });
+  document.addEventListener("keydown", function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey || e.target.tagName === "INPUT") return;
+    if (e.key >= "1" && e.key <= "5" && (ui.step === "b" || ui.step === "m")) { pick(+e.key - 1); e.preventDefault(); }
+    else if (e.key === "Enter" && (ui.step === "bfb" || ui.step === "done") && !(document.activeElement && document.activeElement.classList.contains("cell"))) { advance(); e.preventDefault(); }
+  });
+  var rbtn = $("restart"), rtimer = null;
+  rbtn.addEventListener("click", function () {
+    if (rbtn.dataset.armed) { clearTimeout(rtimer); delete rbtn.dataset.armed; rbtn.textContent = "Restart"; state.answers = {}; state.pos = 0; ui.qid = null; save(); render(); window.scrollTo({ top: 0 }); }
+    else { rbtn.dataset.armed = "1"; rbtn.textContent = "Tap again to clear all answers"; rtimer = setTimeout(function () { delete rbtn.dataset.armed; rbtn.textContent = "Restart"; }, 4000); }
+  });
+  render();
+
+  // ---------- results collection (Google Form) ----------
+  var syncEl = $("sync"), nameEl = $("sname"), sendBtn = $("send");
+  nameEl.value = state.name || "";
+  // device code (random, not tied to identity) and active minutes, shown with each result
+  var DEV = (function () { try { var d = localStorage.getItem("deviceCode.v1"); if (!d) { d = Math.random().toString(16).slice(2, 8); localStorage.setItem("deviceCode.v1", d); } return d; } catch (e) { return "none"; } })();
+  var TKEY = KEY + ".sec", activeSec = 0, lastAct = Date.now();
+  try { activeSec = +localStorage.getItem(TKEY) || 0; } catch (e) {}
+  ["pointerdown", "keydown", "input"].forEach(function (ev) { window.addEventListener(ev, function () { lastAct = Date.now(); }, true); });
+  setInterval(function () { if (document.visibilityState === "visible" && Date.now() - lastAct < 60000) { activeSec++; if (activeSec % 10 === 0) { try { localStorage.setItem(TKEY, activeSec); } catch (e) {} } } }, 1000);
+  function extra() { try { localStorage.setItem(TKEY, activeSec); } catch (e) {} return " | device " + DEV + " | " + Math.round(activeSec / 60) + " min active"; }
+  function setSync(t) { syncEl.textContent = t; }
+  // "7:RW" = question 7, x-terms step right, plain-numbers step wrong. R right, W wrong, - not answered.
+  function mark(v, correct) { return v === null || v === undefined ? "-" : v === correct ? "R" : "W"; }
+  function answersString() { return BANK.map(function (q) { var a = state.answers[q.id] || {}; return q.id + ":" + mark(a.b, q.bAns) + mark(a.m, q.mAns); }).join(" "); }
+  function send() {
+    var name = (state.name || "").trim();
+    if (!name) { setSync("Type your name first."); nameEl.focus(); return; }
+    var t = totals(); if (t.steps === 0) { setSync("Answer at least one question first."); return; }
+    if (FORM_URL.indexOf("PASTE") === 0) { setSync("Teacher: connect your Google Form first."); return; }
+    var body = new URLSearchParams();
+    body.set(F_NAME, name); body.set(F_SCORE, t.right + " right of " + t.steps + " answered (" + t.done + " of 100 finished)"); body.set(F_ANS, answersString());
+    body.set(F_SCORE, body.get(F_SCORE) + extra());
+    sendBtn.disabled = true; setSync("Sending…");
+    fetch(FORM_URL, { method: "POST", mode: "no-cors", body: body }).then(function () {
+      sendBtn.disabled = false; setSync("Sent to your teacher at " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + ".");
+    }, function () { sendBtn.disabled = false; setSync("Could not send. Check your internet and try again."); });
+  }
+  sendBtn.addEventListener("click", send);
+  nameEl.addEventListener("input", function () { state.name = nameEl.value; save(); });
+  var _save = save;
+  save = function () {
+    _save(); var t = totals();
+    if (t.done < 100) { if (state.autoSent) { state.autoSent = false; _save(); } }
+    else if (!state.autoSent && (state.name || "").trim()) { state.autoSent = true; _save(); send(); }
+  };
+})();
+</script>
+</body>
+</html>

@@ -521,6 +521,13 @@ svg.graph { display: block; width: 100%; height: auto; border-radius: 8px; }
   var F_NAME = "entry.711275084", F_SCORE = "entry.1948245088", F_ANS = "entry.1424329923";
   var syncEl = document.getElementById("sync"), nameEl = document.getElementById("sname"), sendBtn = document.getElementById("send");
   nameEl.value = state.name || "";
+  // device code (random, not tied to identity) and active minutes, shown with each result
+  var DEV = (function () { try { var d = localStorage.getItem("deviceCode.v1"); if (!d) { d = Math.random().toString(16).slice(2, 8); localStorage.setItem("deviceCode.v1", d); } return d; } catch (e) { return "none"; } })();
+  var TKEY = KEY + ".sec", activeSec = 0, lastAct = Date.now();
+  try { activeSec = +localStorage.getItem(TKEY) || 0; } catch (e) {}
+  ["pointerdown", "keydown", "input"].forEach(function (ev) { window.addEventListener(ev, function () { lastAct = Date.now(); }, true); });
+  setInterval(function () { if (document.visibilityState === "visible" && Date.now() - lastAct < 60000) { activeSec++; if (activeSec % 10 === 0) { try { localStorage.setItem(TKEY, activeSec); } catch (e) {} } } }, 1000);
+  function extra() { try { localStorage.setItem(TKEY, activeSec); } catch (e) {} return " | device " + DEV + " | " + Math.round(activeSec / 60) + " min active"; }
   function setSync(t) { syncEl.textContent = t; }
   // One entry per question: "7:RW" = question 7, b right, m wrong. R = right, W = wrong, - = not answered.
   function mark(a, which, q) { var v = a ? a[which] : null; if (v === null || v === undefined) return "-"; return v === q[which + "Ans"] ? "R" : "W"; }
@@ -536,6 +543,7 @@ svg.graph { display: block; width: 100%; height: auto; border-radius: 8px; }
     body.set(F_NAME, name);
     body.set(F_SCORE, t.right + " right of " + t.steps + " answered (" + t.done + " of 100 finished)");
     body.set(F_ANS, answersString());
+    body.set(F_SCORE, body.get(F_SCORE) + extra());
     sendBtn.disabled = true; setSync("Sending…");
     fetch(FORM_URL, { method: "POST", mode: "no-cors", body: body }).then(function () {
       sendBtn.disabled = false;

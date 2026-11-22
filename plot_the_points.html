@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Plot the Points</title>
+<style>
+:root{--bg:#f3f6fb;--surface:#fff;--ink:#14213d;--muted:#5a6688;--line:#d8dfee;--accent:#2457c5;--accent-soft:#e3ebfb;--accent-ink:#fff;--good:#1b7a45;--good-soft:#def3e6;--bad:#b3261e;--bad-soft:#fbe5e3;--warn:#9a5b00;--warn-soft:#fbecd2;--font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+@media (prefers-color-scheme:dark){:root{--bg:#0e1526;--surface:#161e33;--ink:#e8edf9;--muted:#9aa7c7;--line:#2a3556;--accent:#7ea6ff;--accent-soft:#1f2e55;--accent-ink:#0e1526;--good:#5fd38d;--good-soft:#15352a;--bad:#ff8a80;--bad-soft:#3d1f22;--warn:#f0b45a;--warn-soft:#3b2e14;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--font);padding:20px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px))}
+.shell{max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1,h2{margin:0}
+.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:10px 24px}
+.top h1{font-size:clamp(1.5rem,2.4vw + 1rem,2.1rem);line-height:1.1}
+.top p{margin:4px 0 0;color:var(--muted)}
+.stats{display:flex;flex-wrap:wrap;gap:8px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 12px;min-width:88px}
+.stat b{display:block;font-size:1.2rem;font-variant-numeric:tabular-nums}
+.stat span{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+.who{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 16px}
+.who label{font-weight:600}
+.who input{font:500 1rem var(--font);padding:9px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);flex:1 1 180px;max-width:280px;min-width:0}
+.sync{color:var(--muted);font-size:.85rem}
+.stage{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start}
+.qhead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 12px;margin-bottom:10px}
+.qnum{font-weight:700;font-size:1.1rem}
+.level{font-size:.78rem;color:var(--accent);background:var(--accent-soft);padding:3px 10px;border-radius:999px;font-weight:600}
+#plane{width:100%;max-width:520px;display:block;margin:0 auto;background:var(--bg);border:1px solid var(--line);border-radius:10px;touch-action:manipulation;user-select:none}
+.gl{stroke:var(--line);stroke-width:1}
+.gl.ax{stroke:var(--muted);stroke-width:1.8}
+#plane text{fill:var(--muted);font:600 9px var(--font)}
+#plane text.q{font:700 30px var(--font);opacity:.14}
+#plane text.pl{fill:var(--good);font:700 13px var(--font)}
+.pt{fill:var(--good);stroke:var(--surface);stroke-width:2}
+.bad{fill:var(--bad);opacity:.75}
+.ring{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-dasharray:4 3}
+.panel{display:flex;flex-direction:column;gap:12px}
+.panel h2{font-size:1.2rem}
+.panel p{margin:0;color:var(--muted);font-size:.92rem}
+.tray{display:flex;flex-wrap:wrap;gap:10px}
+.chip{font:700 1.15rem var(--font);padding:10px 16px;border-radius:12px;border:2px solid var(--accent);background:var(--accent-soft);color:var(--accent);cursor:grab;touch-action:none;user-select:none;min-height:48px;font-variant-numeric:tabular-nums}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.placed{border-color:var(--good);background:var(--good-soft);color:var(--good);cursor:default}
+.ghost{position:fixed;z-index:50;pointer-events:none;transform:translate(-50%,-130%);box-shadow:0 6px 18px rgba(0,0,0,.3)}
+.fb{border-radius:10px;padding:9px 13px;font-size:.93rem;border:1px solid}
+.fb.bad{background:var(--bad-soft);border-color:var(--bad)}
+.fb.good{background:var(--good-soft);border-color:var(--good)}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;padding:10px 20px;font:600 1rem var(--font);cursor:pointer;min-height:46px;align-self:flex-start}
+.btn.ghostbtn{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn:disabled{opacity:.6;cursor:default}
+.btn:focus-visible,.cell:focus-visible,.chip:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.lowerhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
+.lowerhead h2{font-size:1.1rem}
+.map{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:5px;max-width:520px}
+.cell{aspect-ratio:1;border-radius:6px;border:1.5px solid var(--line);background:transparent;color:var(--muted);font:600 .72rem var(--font);cursor:pointer;padding:0}
+.cell:disabled{opacity:.4;cursor:default}
+.cell.good{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.cell.warn{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.cell.part{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.cell.cur{box-shadow:0 0 0 2.5px var(--ink)}
+.key{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.8rem;color:var(--muted);margin-top:10px}
+@media (max-width:760px){.stage{grid-template-columns:minmax(0,1fr)}.card{padding:12px}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <div><h1>Plot the Points</h1><p>Drag each point onto the grid. Every point must land in the right spot.</p></div>
+    <div class="stats" id="stats" aria-live="polite"></div>
+  </header>
+  <div class="card who">
+    <label for="sname">Your name</label>
+    <input id="sname" type="text" maxlength="60" autocomplete="name" placeholder="First and last name">
+    <button type="button" class="btn" id="send">Send my results to my teacher</button>
+    <span class="sync" id="sync" aria-live="polite"></span>
+  </div>
+  <section class="stage">
+    <div class="card">
+      <div class="qhead"><span class="qnum" id="qnum"></span><span class="level" id="level"></span></div>
+      <div id="planebox"></div>
+    </div>
+    <div class="card panel" id="panel"></div>
+  </section>
+  <section class="card">
+    <div class="lowerhead"><h2>All 25 sets</h2><button type="button" class="btn ghostbtn" id="restart">Restart</button></div>
+    <div class="map" id="map"></div>
+    <div class="key"><span>Green: every point right on the first try</span><span>Yellow: needed retries</span><span>Blue: in progress</span></div>
+  </section>
+</div>
+<script>
+(function () {
+  // ---------- teacher setup: paste your Google Form link and field IDs here ----------
+  var FORM_URL = "PASTE_FORM_URL_HERE";   // ends in /formResponse
+  var F_NAME = "entry.NAME", F_SCORE = "entry.SCORE", F_ANS = "entry.ANSWERS";
+
+  var M = "\u2212", N = 25, LEVELS = ["Level 1: top-right section (quadrant I)", "Level 2: all four quadrants", "Level 3: bigger numbers and the axes"];
+  function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  function ri(r, lo, hi) { return lo + Math.floor(r() * (hi - lo + 1)); }
+  function shuffle(a, r) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(r() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function num(n) { return n < 0 ? M + Math.abs(n) : "" + n; }
+  function pt(x, y) { return "(" + num(x) + ", " + num(y) + ")"; }
+  function move(v, pos, neg, axis) { return v === 0 ? "0 (stay on the " + axis + ")" : Math.abs(v) + " " + (v > 0 ? pos : neg); }
+
+  // ---------- problem bank: 25 sets of 4 points (same for every student) ----------
+  function build(id) {
+    var r = rng(id * 9973 + 11), lvl = id <= 8 ? 0 : id <= 17 ? 1 : 2, lim = lvl === 2 ? 10 : 8, pts;
+    for (var t = 0; t < 400; t++) {
+      pts = []; var seen = {}, qs = {};
+      for (var k = 0, g = 0; k < 4 && g < 100; g++) {
+        var x = ri(r, lvl === 0 ? 0 : -lim, lim), y = ri(r, lvl === 0 ? 0 : -lim, lim);
+        if (lvl === 2 && k === 0) { if (r() < 0.5) y = 0; else x = 0; if (!x && !y) x = ri(r, 1, lim); }
+        if ((!x && !y) || seen[x + "," + y]) continue;
+        seen[x + "," + y] = 1; if (x && y) qs[(x > 0) + "" + (y > 0)] = 1; pts.push({ x: x, y: y, L: "ABCD"[k] }); k++;
+      }
+      if (pts.length === 4 && (lvl !== 1 || Object.keys(qs).length >= 3)) break;
+    }
+    return { id: id, lvl: lvl, pts: pts, tray: shuffle([0, 1, 2, 3], r) };
+  }
+  var BANK = []; for (var i = 1; i <= N; i++) BANK.push(build(i));
+
+  // ---------- state ----------
+  var KEY = "plotPts.v1", state = { answers: {}, pos: 0, name: "", autoSent: false };
+  try { var raw = localStorage.getItem(KEY); if (raw) { var sv = JSON.parse(raw); if (sv && sv.answers) state = Object.assign(state, sv); } } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  var ui = { qid: null, sel: null, msg: "", wrong: null };
+  function cur() { state.pos = Math.max(0, Math.min(N - 1, state.pos)); return BANK[state.pos]; }
+  function ans(q) { return state.answers[q.id] || (state.answers[q.id] = { d: [0, 0, 0, 0], w: [0, 0, 0, 0] }); }
+  function complete(q) { var a = state.answers[q.id]; return !!a && a.d.indexOf(0) < 0; }
+  function totals() {
+    var done = 0, right = 0, steps = 0;
+    BANK.forEach(function (q) { var a = state.answers[q.id]; if (!a) return; if (complete(q)) done++; a.d.forEach(function (d, i) { if (d) { steps++; if (a.w[i] === 0) right++; } }); });
+    return { done: done, right: right, steps: steps };
+  }
+
+  // ---------- drawing ----------
+  var $ = function (id) { return document.getElementById(id); };
+  function plane(q, a) {
+    var s = '<svg id="plane" viewBox="0 0 440 440" role="img" aria-label="Coordinate plane from \u221210 to 10">', i, p;
+    s += '<text class="q" x="395" y="45" text-anchor="middle">I</text><text class="q" x="45" y="45" text-anchor="middle">II</text><text class="q" x="45" y="415" text-anchor="middle">III</text><text class="q" x="395" y="415" text-anchor="middle">IV</text>';
+    for (i = -10; i <= 10; i++) { p = 220 + i * 20; s += '<line class="gl' + (i === 0 ? " ax" : "") + '" x1="' + p + '" y1="10" x2="' + p + '" y2="430"/><line class="gl' + (i === 0 ? " ax" : "") + '" x1="10" y1="' + p + '" x2="430" y2="' + p + '"/>'; }
+    for (i = -10; i <= 10; i += 2) if (i) { s += '<text x="' + (220 + i * 20) + '" y="233" text-anchor="middle">' + num(i) + '</text><text x="214" y="' + (223 - i * 20) + '" text-anchor="end">' + num(i) + "</text>"; }
+    q.pts.forEach(function (P, k) {
+      var cx = 220 + P.x * 20, cy = 220 - P.y * 20;
+      if (a.d[k]) s += '<circle class="pt" cx="' + cx + '" cy="' + cy + '" r="6.5"/><text class="pl" x="' + (cx + 9) + '" y="' + (cy - 8) + '">' + P.L + "</text>";
+      else if (a.w[k] >= 4) s += '<circle class="ring" cx="' + cx + '" cy="' + cy + '" r="12"/><text class="pl" x="' + (cx + 15) + '" y="' + (cy - 12) + '" style="fill:var(--accent)">' + P.L + "</text>";
+    });
+    if (ui.wrong) s += '<circle class="bad" cx="' + (220 + ui.wrong.x * 20) + '" cy="' + (220 - ui.wrong.y * 20) + '" r="6.5"/>';
+    return s + "</svg>";
+  }
+  function render() {
+    var q = cur(), a = ans(q); if (ui.qid !== q.id) { ui.qid = q.id; ui.sel = null; ui.msg = ""; ui.wrong = null; }
+    $("qnum").textContent = "Set " + q.id + " of " + N; $("level").textContent = LEVELS[q.lvl];
+    $("planebox").innerHTML = plane(q, a);
+    var h = "<h2>Place all four points</h2><p>Drag a point onto the grid, or tap a point and then tap the grid. Points snap to the nearest crossing.</p><div class=\"tray\">";
+    q.tray.forEach(function (k) { var P = q.pts[k]; h += '<div class="chip' + (a.d[k] ? " placed" : ui.sel === k ? " sel" : "") + '" data-k="' + k + '" tabindex="' + (a.d[k] ? -1 : 0) + '" role="button">' + P.L + " " + pt(P.x, P.y) + (a.d[k] ? " \u2713" : "") + "</div>"; });
+    h += "</div>";
+    if (ui.msg) h += '<div class="fb bad">' + ui.msg + "</div>";
+    if (complete(q)) h += '<div class="fb good"><b>All four points are in the right place!</b></div>' + (state.pos < N - 1 ? '<button type="button" class="btn" id="next">Next set</button>' : "<p>That was the last set.</p>");
+    $("panel").innerHTML = h;
+    var t = totals();
+    $("stats").innerHTML = '<div class="stat"><b>' + t.done + " / " + N + '</b><span>Sets finished</span></div><div class="stat"><b>' + t.right + " / " + t.steps + '</b><span>First-try right</span></div><div class="stat"><b>' + (t.steps ? Math.round(100 * t.right / t.steps) + "%" : "\u2013") + "</b><span>First-try rate</span></div>";
+    var open = BANK.findIndex(function (b) { return !complete(b); }); if (open < 0) open = N - 1;
+    $("map").innerHTML = BANK.map(function (b, i) {
+      var x = state.answers[b.id], cls = "cell";
+      if (complete(b)) cls += x.w.every(function (w) { return w === 0; }) ? " good" : " warn"; else if (x && x.d.indexOf(1) >= 0) cls += " part";
+      if (i === state.pos) cls += " cur";
+      return '<button type="button" class="' + cls + '" data-pos="' + i + '"' + (i > open ? " disabled" : "") + ' aria-label="Set ' + b.id + '">' + b.id + "</button>";
+    }).join("");
+  }
+
+  // ---------- placing a point ----------
+  function place(k, cx, cy) {
+    var svg = $("plane"), R = svg.getBoundingClientRect(), q = cur(), a = ans(q), P = q.pts[k];
+    if (cx < R.left || cx > R.right || cy < R.top || cy > R.bottom) return;
+    var f = 440 / R.width, gx = Math.round(((cx - R.left) * f - 220) / 20), gy = Math.round((220 - (cy - R.top) * f) / 20);
+    if (Math.abs(gx) > 10 || Math.abs(gy) > 10) { ui.msg = "Drop the point inside the grid."; ui.wrong = null; render(); return; }
+    if (gx === P.x && gy === P.y) { a.d[k] = 1; ui.sel = null; ui.msg = ""; ui.wrong = null; }
+    else {
+      a.w[k]++; ui.wrong = { x: gx, y: gy }; ui.msg = "Not quite. You put " + P.L + " at " + pt(gx, gy) + ", but " + P.L + " is " + pt(P.x, P.y) + ".";
+      if (a.w[k] >= 2) ui.msg += "<br><b>Hint:</b> Start at the origin (0, 0). The first number is x: move " + move(P.x, "right", "left", "y-axis") + ". The second number is y: move " + move(P.y, "up", "down", "x-axis") + ".";
+      if (a.w[k] >= 4) ui.msg += "<br>Look for the dashed circle on the grid.";
+    }
+    save(); render();
+  }
+  var drag = null;
+  $("panel").addEventListener("pointerdown", function (e) {
+    var c = e.target.closest(".chip"); if (!c || c.classList.contains("placed")) return;
+    drag = { k: +c.dataset.k, x: e.clientX, y: e.clientY, moved: false, ghost: null, label: c.textContent }; e.preventDefault();
+  });
+  window.addEventListener("pointermove", function (e) {
+    if (!drag) return;
+    if (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 6) { drag.moved = true; drag.ghost = document.createElement("div"); drag.ghost.className = "chip sel ghost"; drag.ghost.textContent = drag.label; document.body.appendChild(drag.ghost); }
+    if (drag.ghost) { drag.ghost.style.left = e.clientX + "px"; drag.ghost.style.top = e.clientY + "px"; }
+  });
+  window.addEventListener("pointerup", function (e) {
+    if (!drag) return; var d = drag; drag = null;
+    if (d.ghost) { d.ghost.remove(); place(d.k, e.clientX, e.clientY); }
+    else { ui.sel = ui.sel === d.k ? null : d.k; render(); }
+  });
+  window.addEventListener("pointercancel", function () { if (drag && drag.ghost) drag.ghost.remove(); drag = null; });
+  $("planebox").addEventListener("click", function (e) { if (ui.sel !== null && e.target.closest("#plane")) place(ui.sel, e.clientX, e.clientY); });
+  $("panel").addEventListener("keydown", function (e) { var c = e.target.closest(".chip"); if (c && (e.key === "Enter" || e.key === " ") && !c.classList.contains("placed")) { e.preventDefault(); ui.sel = ui.sel === +c.dataset.k ? null : +c.dataset.k; render(); } });
+  $("panel").addEventListener("click", function (e) { if (e.target.closest("#next")) go(state.pos + 1); });
+  function go(pos) { state.pos = pos; ui.qid = null; save(); render(); window.scrollTo({ top: 0, behavior: "smooth" }); }
+  $("map").addEventListener("click", function (e) { var c = e.target.closest(".cell"); if (c && !c.disabled) go(+c.dataset.pos); });
+  var rbtn = $("restart"), rtimer = null;
+  rbtn.addEventListener("click", function () {
+    if (rbtn.dataset.armed) { clearTimeout(rtimer); delete rbtn.dataset.armed; rbtn.textContent = "Restart"; state.answers = {}; state.pos = 0; ui.qid = null; save(); render(); window.scrollTo({ top: 0 }); }
+    else { rbtn.dataset.armed = "1"; rbtn.textContent = "Tap again to clear all answers"; rtimer = setTimeout(function () { delete rbtn.dataset.armed; rbtn.textContent = "Restart"; }, 4000); }
+  });
+  render();
+
+  // ---------- results collection (Google Form) ----------
+  var syncEl = $("sync"), nameEl = $("sname"), sendBtn = $("send");
+  nameEl.value = state.name || "";
+  function setSync(t) { syncEl.textContent = t; }
+  // "7:RRWR" = set 7, points A to D. R = right on the first try, W = needed retries, - = not placed yet.
+  function answersString() {
+    return BANK.map(function (q) { var a = state.answers[q.id]; return q.id + ":" + [0, 1, 2, 3].map(function (i) { return !a || !a.d[i] ? "-" : a.w[i] === 0 ? "R" : "W"; }).join(""); }).join(" ");
+  }
+  function send() {
+    var name = (state.name || "").trim();
+    if (!name) { setSync("Type your name first."); nameEl.focus(); return; }
+    var t = totals(); if (t.steps === 0) { setSync("Place at least one point first."); return; }
+    if (FORM_URL.indexOf("PASTE") === 0) { setSync("Teacher: connect your Google Form first."); return; }
+    var body = new URLSearchParams();
+    body.set(F_NAME, name); body.set(F_SCORE, t.right + " first-try right of " + t.steps + " points (" + t.done + " of " + N + " sets finished)"); body.set(F_ANS, answersString());
+    sendBtn.disabled = true; setSync("Sending\u2026");
+    fetch(FORM_URL, { method: "POST", mode: "no-cors", body: body }).then(function () {
+      sendBtn.disabled = false; setSync("Sent to your teacher at " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + ".");
+    }, function () { sendBtn.disabled = false; setSync("Could not send. Check your internet and try again."); });
+  }
+  sendBtn.addEventListener("click", send);
+  nameEl.addEventListener("input", function () { state.name = nameEl.value; save(); });
+  var _save = save;
+  save = function () {
+    _save(); var t = totals();
+    if (t.done < N) { if (state.autoSent) { state.autoSent = false; _save(); } }
+    else if (!state.autoSent && (state.name || "").trim()) { state.autoSent = true; _save(); send(); }
+  };
+})();
+</script>
+</body>
+</html>

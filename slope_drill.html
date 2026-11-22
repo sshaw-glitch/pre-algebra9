@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta charset="utf-8">
+<title>Slope and Intercept Drill</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+/* Layout: a graph-paper card beside a two-step answer panel; stacks on phones. A 10x10 map of all 100 questions sits underneath. */
+:root {
+  --bg: #f3f6fb;
+  --surface: #ffffff;
+  --ink: #14213d;
+  --muted: #5a6688;
+  --line: #d8dfee;
+  --accent: #2457c5;
+  --accent-soft: #e3ebfb;
+  --accent-ink: #ffffff;
+  --good: #1b7a45;
+  --good-soft: #def3e6;
+  --bad: #b3261e;
+  --bad-soft: #fbe5e3;
+  --warn: #9a5b00;
+  --warn-soft: #fbecd2;
+  --paper: #fbfcff;
+  --grid-minor: #d5dcec;
+  --grid-major: #aab5cf;
+  --axis: #14213d;
+  --halo: #ffffff;
+  --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1526; --surface: #161e33; --ink: #e8edf9; --muted: #9aa7c7; --line: #2a3556;
+    --accent: #7ea6ff; --accent-soft: #1f2e55; --accent-ink: #0e1526;
+    --good: #5fd38d; --good-soft: #15352a; --bad: #ff8a80; --bad-soft: #3d1f22;
+    --warn: #f0b45a; --warn-soft: #3b2e14;
+    --paper: #121a2e; --grid-minor: #26314f; --grid-major: #3d4b72; --axis: #e8edf9; --halo: #121a2e;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1526; --surface: #161e33; --ink: #e8edf9; --muted: #9aa7c7; --line: #2a3556;
+  --accent: #7ea6ff; --accent-soft: #1f2e55; --accent-ink: #0e1526;
+  --good: #5fd38d; --good-soft: #15352a; --bad: #ff8a80; --bad-soft: #3d1f22;
+  --warn: #f0b45a; --warn-soft: #3b2e14;
+  --paper: #121a2e; --grid-minor: #26314f; --grid-major: #3d4b72; --axis: #e8edf9; --halo: #121a2e;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.5;
+  padding-block: 20px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.shell { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+h1, h2 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
+.top h1 { font-size: clamp(1.5rem, 2.4vw + 1rem, 2.1rem); line-height: 1.1; letter-spacing: -0.01em; }
+.top p { margin: 4px 0 0; color: var(--muted); font-size: 0.95rem; }
+.stats { display: flex; flex-wrap: wrap; gap: 8px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 6px 12px; min-width: 88px; }
+.stat b { display: block; font-family: var(--font-display); font-size: 1.2rem; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.stat span { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+.stage { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+.graphcard { padding: 14px; }
+.qhead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; margin-bottom: 10px; }
+.qnum { font-family: var(--font-display); font-weight: 600; font-size: 1.1rem; }
+.level { font-size: 0.78rem; color: var(--accent); background: var(--accent-soft); padding: 3px 10px; border-radius: 999px; font-weight: 500; }
+svg.graph { display: block; width: 100%; height: auto; border-radius: 8px; }
+.paper { fill: var(--paper); }
+.gm { stroke: var(--grid-minor); stroke-width: 0.8; }
+.gM { stroke: var(--grid-major); stroke-width: 1.2; }
+.ax { stroke: var(--axis); stroke-width: 2; }
+.lb { fill: var(--muted); font: 500 10px var(--font-body); text-anchor: middle; font-variant-numeric: tabular-nums; }
+.lb.y { text-anchor: end; }
+.axname { fill: var(--ink); font: 700 13px var(--font-display); }
+.ln { stroke: var(--accent); stroke-width: 3.2; stroke-linecap: round; }
+.dot { fill: var(--accent); stroke: var(--paper); stroke-width: 1.5; }
+.ringb { fill: none; stroke: var(--good); stroke-width: 3; }
+.stair { stroke: var(--warn); stroke-width: 2.6; stroke-dasharray: 6 4; fill: none; }
+.tag { font: 700 12px var(--font-body); paint-order: stroke; stroke: var(--halo); stroke-width: 4px; stroke-linejoin: round; }
+.tag.g { fill: var(--good); } .tag.w { fill: var(--warn); }
+.legend { margin: 10px 2px 0; font-size: 0.82rem; color: var(--muted); }
+
+.panel { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+.steps { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { font-size: 0.82rem; font-weight: 600; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); background: transparent; }
+.chip.on { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.chip.ok { color: var(--good); border-color: var(--good); background: var(--good-soft); }
+.chip.no { color: var(--bad); border-color: var(--bad); background: var(--bad-soft); }
+.prompt h2 { font-size: 1.35rem; line-height: 1.25; }
+.prompt p { margin: 4px 0 0; color: var(--muted); font-size: 0.92rem; }
+.choices { display: flex; flex-direction: column; gap: 8px; }
+.choice {
+  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; cursor: pointer;
+  background: var(--surface); color: var(--ink); border: 1.5px solid var(--line); border-radius: 10px;
+  padding: 10px 14px; font: 500 1.1rem var(--font-body); min-height: 48px;
+}
+.choice .k { flex: none; width: 26px; height: 26px; border-radius: 7px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font: 700 0.8rem var(--font-body); }
+.choice:hover:not(:disabled) { border-color: var(--accent); }
+.choice:focus-visible, .btn:focus-visible, .cell:focus-visible, .seg button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.choice:disabled { cursor: default; }
+.choice.right { border-color: var(--good); background: var(--good-soft); }
+.choice.right .k { background: var(--good); color: var(--surface); }
+.choice.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.choice.wrong .k { background: var(--bad); color: var(--surface); }
+.choice .lab { display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
+.fr { display: inline-flex; flex-direction: column; align-items: center; line-height: 1.05; vertical-align: middle; font-size: 0.9em; }
+.fr > span:first-child { border-bottom: 1.5px solid currentColor; padding: 0 3px 1px; }
+.fr > span:last-child { padding: 1px 3px 0; }
+.fb { border-radius: 10px; padding: 10px 14px; font-size: 0.95rem; border: 1px solid var(--line); }
+.fb.good { background: var(--good-soft); border-color: var(--good); }
+.fb.bad { background: var(--bad-soft); border-color: var(--bad); }
+.fb b { font-family: var(--font-display); }
+.btn { align-self: flex-start; background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 10px; padding: 11px 20px; font: 600 1rem var(--font-body); cursor: pointer; min-height: 46px; }
+.btn:hover { filter: brightness(1.08); }
+.btn.ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
+.hint { font-size: 0.8rem; color: var(--muted); }
+
+.lower { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+.lower h2 { font-size: 1.1rem; }
+.lowerhead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 16px; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.seg { display: inline-flex; border: 1.5px solid var(--line); border-radius: 10px; overflow: hidden; }
+.seg button { background: transparent; color: var(--muted); border: 0; padding: 8px 14px; font: 600 0.85rem var(--font-body); cursor: pointer; min-height: 40px; }
+.seg button.on { background: var(--accent); color: var(--accent-ink); }
+.map { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 5px; max-width: 520px; }
+.cell { aspect-ratio: 1; border-radius: 6px; border: 1.5px solid var(--line); background: transparent; color: var(--muted); font: 600 0.72rem var(--font-body); cursor: pointer; padding: 0; font-variant-numeric: tabular-nums; }
+.cell.good { background: var(--good-soft); border-color: var(--good); color: var(--good); }
+.cell.warn { background: var(--warn-soft); border-color: var(--warn); color: var(--warn); }
+.cell.bad { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); }
+.cell.part { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.cell.cur { box-shadow: 0 0 0 2.5px var(--ink); }
+.key { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.8rem; color: var(--muted); }
+.key i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; vertical-align: -1px; margin-right: 5px; }
+.key .g { background: var(--good-soft); border-color: var(--good); } .key .w { background: var(--warn-soft); border-color: var(--warn); }
+.key .b { background: var(--bad-soft); border-color: var(--bad); } .key .u { border-color: var(--line); }
+.results { border-top: 1px solid var(--line); padding-top: 12px; }
+.results table { border-collapse: collapse; width: 100%; max-width: 520px; font-variant-numeric: tabular-nums; font-size: 0.92rem; }
+.results th, .results td { text-align: left; padding: 6px 10px 6px 0; border-bottom: 1px solid var(--line); }
+.results th { color: var(--muted); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; }
+@media (max-width: 860px) { .stage { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 520px) { .lb.odd { display: none; } .panel, .graphcard, .lower { padding: 12px; } .choice { font-size: 1.05rem; } }
+@media (prefers-reduced-motion: no-preference) { .choice, .btn, .cell { transition: border-color .15s, background-color .15s, filter .15s; } }
+.who { display:flex; flex-wrap:wrap; gap:10px; align-items:center; padding:12px 16px; margin-bottom:14px; }
+.who label { font-weight:600; font-size:.92rem; }
+.who input { font:500 1rem var(--font-body); padding:9px 12px; border:1.5px solid var(--line); border-radius:10px; background:var(--paper); color:var(--ink); min-width:0; flex:1 1 180px; max-width:280px; }
+.who .sync { color:var(--muted); font-size:.85rem; }
+.teacher { padding:16px; margin-top:14px; }
+.teacher h2 { margin:0 0 8px; font-size:1.1rem; }
+.teacher .scroll { overflow-x:auto; }
+.teacher table { border-collapse:collapse; width:100%; font-variant-numeric:tabular-nums; font-size:.92rem; }
+.teacher th, .teacher td { text-align:left; padding:6px 12px 6px 0; border-bottom:1px solid var(--line); white-space:nowrap; }
+.teacher th { color:var(--muted); font-weight:600; font-size:.78rem; text-transform:uppercase; letter-spacing:.05em; }
+.teacher p { color:var(--muted); font-size:.9rem; margin:8px 0 0; }
+</style>
+
+<div class="shell">
+  <a href="./" style="color:var(--accent,#2457c5);font-weight:600;text-decoration:none;align-self:flex-start">← All pages</a>
+  <header class="top">
+    <div>
+      <h1>Slope &amp; Intercept Drill</h1>
+      <p>100 graphs. Find <b>b</b>, the y-intercept, then <b>m</b>, the slope.</p>
+    </div>
+    <div class="stats" id="stats" aria-live="polite"></div>
+  </header>
+
+  <div class="card who" id="who">
+    <label for="sname">Your name</label>
+    <input id="sname" type="text" maxlength="60" autocomplete="name" placeholder="First and last name">
+    <button type="button" class="btn" id="send">Send my results to my teacher</button>
+    <span class="sync" id="sync" aria-live="polite"></span>
+  </div>
+
+  <section class="stage">
+    <div class="card graphcard">
+      <div class="qhead"><span class="qnum" id="qnum"></span><span class="level" id="level"></span></div>
+      <div id="graph"></div>
+      <p class="legend" id="legend"></p>
+    </div>
+    <div class="card panel" id="panel"></div>
+  </section>
+
+  <section class="card lower">
+    <div class="lowerhead">
+      <h2>All 100 questions</h2>
+      <div class="controls">
+        <div class="seg" role="group" aria-label="Question order">
+          <button type="button" id="mode-levels">By level</button>
+          <button type="button" id="mode-shuffled">Shuffled</button>
+        </div>
+        <button type="button" class="btn ghost" id="restart">Restart</button>
+      </div>
+    </div>
+    <div class="map" id="map"></div>
+    <div class="key">
+      <span><i class="g"></i>Both right</span><span><i class="w"></i>One right</span><span><i class="b"></i>Both wrong</span><span><i class="u"></i>Not answered</span>
+    </div>
+    <div class="results" id="results" hidden></div>
+  </section>
+</div>
+
+<script>
+(function () {
+  // ---------- fractions ----------
+  var gcd = function (a, b) { return b ? gcd(b, a % b) : Math.abs(a); };
+  var F = function (n, d) { d = d === undefined ? 1 : d; if (d < 0) { n = -n; d = -d; } var g = gcd(n, d) || 1; return { n: n / g, d: d / g }; };
+  var fkey = function (f) { return f.und ? "und" : f.n + "/" + f.d; };
+  var fval = function (f) { return f.n / f.d; };
+  var fneg = function (f) { return F(-f.n, f.d); };
+  var frecip = function (f) { return F(f.d, f.n); };
+  var fadd1 = function (f, k) { return F(f.n + k * f.d, f.d); };
+  var SIGN = "−";
+  var num = function (v) { return (v < 0 ? SIGN : "") + Math.abs(v); };
+  function fhtml(f) {
+    if (f.und) return "undefined";
+    var s = f.n < 0 ? SIGN : "";
+    if (f.d === 1) return s + Math.abs(f.n);
+    return s + '<span class="fr"><span>' + Math.abs(f.n) + '</span><span>' + f.d + '</span></span>';
+  }
+  function ftext(f) { if (f.und) return "undefined"; return (f.n < 0 ? SIGN : "") + Math.abs(f.n) + (f.d === 1 ? "" : "/" + f.d); }
+
+  // ---------- seeded random ----------
+  function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  function shuffle(arr, r) { var a = arr.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(r() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+
+  // ---------- geometry ----------
+  function lattice(m, b) {
+    var pts = [];
+    for (var x = -10; x <= 10; x++) {
+      if ((m.n * x) % m.d === 0) { var y = m.n * x / m.d + b; if (y >= -10 && y <= 10) pts.push({ x: x, y: y }); }
+    }
+    return pts;
+  }
+  function valid(m, b) { var p = lattice(m, b); return p.length >= 4 && p.some(function (q) { return q.x > 0; }); }
+  function firstRight(m, b) { return lattice(m, b).filter(function (p) { return p.x > 0; })[0]; }
+
+  // ---------- question bank (fixed seed, so every student sees the same 100) ----------
+  var LEVELS = [
+    { name: "Level 1", note: "Whole-number slopes", dots: true },
+    { name: "Level 2", note: "Fraction slopes", dots: true },
+    { name: "Level 3", note: "No dots, tricky cases", dots: false }
+  ];
+  function buildBank() {
+    var r = rng(20261120), used = {}, bank = [];
+    var plans = [
+      { lv: 0, count: 30, slopes: [1, 2, 3, 4, -1, -2, -3, -4].map(function (v) { return F(v); }) },
+      { lv: 1, count: 40, slopes: [F(1, 2), F(-1, 2), F(1, 3), F(-1, 3), F(2, 3), F(-2, 3), F(3, 4), F(-3, 4), F(1, 4), F(-1, 4), F(3, 2), F(-3, 2), F(4, 3), F(-4, 3), F(5, 2), F(-5, 2)] },
+      { lv: 2, count: 30, slopes: [F(0), F(0), F(0), F(5), F(-5), F(1), F(-1), F(2), F(-2), F(3), F(-3), F(4), F(-4), F(1, 2), F(-1, 2), F(2, 3), F(-2, 3), F(3, 2), F(-3, 2), F(1, 3), F(-1, 3), F(3, 4), F(-3, 4)] }
+    ];
+    plans.forEach(function (pl) {
+      var seq = [];
+      while (seq.length < pl.count + 20) seq = seq.concat(shuffle(pl.slopes, r));
+      var made = 0, si = 0;
+      while (made < pl.count && si < seq.length) {
+        var m = seq[si++], cands = [];
+        for (var b = -9; b <= 9; b++) { if (!used[fkey(m) + "|" + b] && valid(m, b)) cands.push(b); }
+        if (!cands.length) continue;
+        if (pl.lv === 2) { var edge = cands.filter(function (b) { return b === 0 || Math.abs(b) >= 7; }); if (edge.length && r() < 0.6) cands = edge; }
+        var bb = cands[Math.floor(r() * cands.length)];
+        used[fkey(m) + "|" + bb] = true;
+        bank.push({ id: bank.length + 1, lv: pl.lv, m: m, b: bb });
+        made++;
+      }
+    });
+    bank.forEach(function (q) { q.dots = LEVELS[q.lv].dots; makeChoices(q); });
+    return bank;
+  }
+  function makeChoices(q) {
+    var r = rng(9000 + q.id), m = q.m, b = q.b;
+    // y-intercept choices
+    var p = firstRight(m, b), pool = [];
+    var add = function (v) { if (v !== b && v >= -10 && v <= 10 && pool.indexOf(v) < 0) pool.push(v); };
+    if (b !== 0) add(-b);
+    if (m.n !== 0 && (-b * m.d) % m.n === 0) add(-b * m.d / m.n);
+    if (p) add(p.y);
+    var near = shuffle([b + 1, b - 1, b + 2, b - 2, b + 3, b - 3], r);
+    var pri = pool.slice(0, 3);
+    near.forEach(function (v) { if (pri.length < 4 && v !== b && v >= -10 && v <= 10 && pri.indexOf(v) < 0) pri.push(v); });
+    var bch = shuffle([b].concat(pri.slice(0, 4)), r);
+    q.bChoices = bch; q.bAns = bch.indexOf(b);
+    // slope choices
+    var mc = [], seen = {}; seen[fkey(m)] = 1;
+    var addm = function (f) { var k = fkey(f); if (!seen[k]) { seen[k] = 1; mc.push(f); } };
+    if (m.n === 0) { addm(F(1)); addm(F(-1)); addm(F(2)); addm({ und: true }); }
+    else {
+      addm(fneg(m)); addm(frecip(m));
+      shuffle([fadd1(m, 1), fadd1(m, -1), F(2 * m.n, m.d), F(m.n, 2 * m.d), fneg(frecip(m)), F(3 * m.n, m.d)], r).forEach(addm);
+    }
+    [F(2), F(-2), F(3), F(-3), F(1, 2), F(-1, 2)].forEach(addm);
+    var mch = shuffle([m].concat(mc.slice(0, 4)), r);
+    q.mChoices = mch; q.mAns = mch.findIndex(function (f) { return fkey(f) === fkey(m); });
+  }
+  var BANK = buildBank();
+
+  // ---------- state ----------
+  var KEY = "slopeDrill.v1";
+  var state = { mode: "levels", seed: 7, answers: {}, pos: 0 };
+  try { var raw = localStorage.getItem(KEY); if (raw) { var s = JSON.parse(raw); if (s && s.answers) state = Object.assign(state, s); } } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  var ui = { step: "b" };
+
+  function order() {
+    var ids = BANK.map(function (q) { return q.id; });
+    return state.mode === "shuffled" ? shuffle(ids, rng(state.seed)) : ids;
+  }
+  function cur() { var o = order(); state.pos = Math.max(0, Math.min(99, state.pos)); return BANK[o[state.pos] - 1]; }
+  function ans(q) { return state.answers[q.id] || (state.answers[q.id] = { b: null, m: null }); }
+  function setStepFor(q) {
+    var a = ans(q);
+    ui.step = a.b === null ? "b" : (a.m === null ? "m" : "done");
+  }
+
+  // ---------- graph ----------
+  function graph(q, showB, showM) {
+    var S = 480, M = 28, U = (S - 2 * M) / 20;
+    var X = function (x) { return M + (x + 10) * U; }, Y = function (y) { return M + (10 - y) * U; };
+    var o = '<svg class="graph" viewBox="0 0 ' + S + ' ' + S + '" role="img" aria-label="A line drawn on a coordinate grid from negative 10 to 10 on both axes">';
+    o += '<rect class="paper" x="0" y="0" width="' + S + '" height="' + S + '"/>';
+    var i;
+    for (i = -10; i <= 10; i++) {
+      if (i === 0) continue;
+      var cls = i % 5 === 0 ? "gM" : "gm";
+      o += '<line class="' + cls + '" x1="' + X(i) + '" y1="' + Y(-10) + '" x2="' + X(i) + '" y2="' + Y(10) + '"/>';
+      o += '<line class="' + cls + '" x1="' + X(-10) + '" y1="' + Y(i) + '" x2="' + X(10) + '" y2="' + Y(i) + '"/>';
+    }
+    o += '<line class="ax" x1="' + X(-10) + '" y1="' + Y(0) + '" x2="' + X(10) + '" y2="' + Y(0) + '"/>';
+    o += '<line class="ax" x1="' + X(0) + '" y1="' + Y(-10) + '" x2="' + X(0) + '" y2="' + Y(10) + '"/>';
+    for (i = -10; i <= 10; i++) {
+      if (i === 0) continue;
+      var odd = i % 2 !== 0 ? " odd" : "";
+      o += '<text class="lb' + odd + '" x="' + X(i) + '" y="' + (Y(0) + 14) + '">' + num(i) + '</text>';
+      o += '<text class="lb y' + odd + '" x="' + (X(0) - 6) + '" y="' + (Y(i) + 3.5) + '">' + num(i) + '</text>';
+    }
+    o += '<text class="axname" x="' + (S - 14) + '" y="' + (Y(0) - 7) + '">x</text><text class="axname" x="' + (X(0) + 8) + '" y="' + 16 + '">y</text>';
+    var m = fval(q.m), b = q.b, ya = m * -10 + b, yb = m * 10 + b, xa = -10, xb = 10;
+    if (m !== 0) {
+      if (Math.abs(ya) > 10) xa = (Math.max(-10, Math.min(10, ya)) - b) / m;
+      if (Math.abs(yb) > 10) xb = (Math.max(-10, Math.min(10, yb)) - b) / m;
+    }
+    o += '<line class="ln" x1="' + X(xa) + '" y1="' + Y(m * xa + b) + '" x2="' + X(xb) + '" y2="' + Y(m * xb + b) + '"/>';
+    if (q.dots) lattice(q.m, q.b).forEach(function (p) { o += '<circle class="dot" cx="' + X(p.x) + '" cy="' + Y(p.y) + '" r="4.6"/>'; });
+    if (showM) {
+      var p = firstRight(q.m, q.b), rise = p.y - b, run = p.x;
+      if (rise !== 0) o += '<line class="stair" x1="' + X(0) + '" y1="' + Y(b) + '" x2="' + X(p.x) + '" y2="' + Y(b) + '"/><line class="stair" x1="' + X(p.x) + '" y1="' + Y(b) + '" x2="' + X(p.x) + '" y2="' + Y(p.y) + '"/>';
+      else o += '<line class="stair" x1="' + X(0) + '" y1="' + Y(b) + '" x2="' + X(p.x) + '" y2="' + Y(b) + '"/>';
+      var right = p.x >= 8, up = right ? (rise > 0) : !(rise > 0);
+      var lx = right ? X(p.x) - 11 : X(p.x) + 11, ly = Y(p.y) + (rise === 0 ? 19 : (up ? -9 : 19));
+      o += '<text class="tag w" text-anchor="' + (right ? "end" : "start") + '" x="' + lx + '" y="' + ly + '">rise ' + (rise === 0 ? "0" : num(rise)) + ' \u00b7 run ' + run + '</text>';
+    }
+    if (showB) {
+      o += '<circle class="ringb" cx="' + X(0) + '" cy="' + Y(b) + '" r="9.5"/>';
+    }
+    return o + '</svg>';
+  }
+
+  // ---------- panel ----------
+  var LETTERS = ["A", "B", "C", "D", "E"];
+  function explainB(q, picked) {
+    var t = "The line crosses the y-axis at <b>(0, " + num(q.b) + ")</b>, so <b>b = " + num(q.b) + "</b>.";
+    if (picked === null || picked === q.b) return t;
+    if (picked === -q.b) return "That has the opposite sign. " + t;
+    if (q.m.n !== 0 && (-q.b * q.m.d) % q.m.n === 0 && picked === -q.b * q.m.d / q.m.n) return "That is where the line crosses the <i>x</i>-axis. The y-intercept is where it crosses the <i>y</i>-axis. " + t;
+    return "Find where the line meets the vertical axis. " + t;
+  }
+  function explainM(q, picked) {
+    var p = firstRight(q.m, q.b), rise = p.y - q.b, run = p.x, m = q.m;
+    var t;
+    if (m.n === 0) t = "The line is flat, so it never rises: <b>m = 0</b>. A horizontal line has slope 0. Only a vertical line has an undefined slope.";
+    else t = "Start at (0, " + num(q.b) + "). Move <b>" + run + " right</b> and <b>" + Math.abs(rise) + (rise > 0 ? " up" : " down") + "</b> to reach (" + num(p.x) + ", " + num(p.y) + "). Slope = rise &divide; run = " + num(rise) + "/" + run + " = <b>" + fhtml(m) + "</b>.";
+    if (picked && !picked.und && m.n !== 0) {
+      if (fkey(picked) === fkey(fneg(m))) t = "That has the wrong sign. The line goes " + (fval(m) > 0 ? "up" : "down") + " as you move right. " + t;
+      else if (fkey(picked) === fkey(frecip(m))) t = "That is run &divide; rise. Slope is rise &divide; run. " + t;
+    }
+    if (picked && picked.und && m.n === 0) t = "Undefined slope belongs to vertical lines. " + t;
+    return t;
+  }
+  function choiceBtns(list, kind, correctIdx, picked, locked) {
+    var h = '<div class="choices" role="group">';
+    list.forEach(function (c, i) {
+      var cls = "choice";
+      if (locked) { if (i === correctIdx) cls += " right"; else if (i === picked) cls += " wrong"; }
+      var label = kind === "b" ? "b = " + num(c) : "m = " + fhtml(c);
+      h += '<button type="button" class="' + cls + '" data-i="' + i + '"' + (locked ? " disabled" : "") + '><span class="k">' + (i + 1) + '</span><span class="lab">' + label + '</span></button>';
+    });
+    return h + '</div>';
+  }
+  function chipState(q, which) {
+    var a = ans(q);
+    if (a[which] === null) return "";
+    return (which === "b" ? a.b === q.bAns : a.m === q.mAns) ? " ok" : " no";
+  }
+  function render() {
+    var q = cur(), a = ans(q);
+    if (!ui.step || (ui.qid !== q.id)) { setStepFor(q); ui.qid = q.id; }
+    var showB = a.b !== null && ui.step !== "b";
+    var showM = a.m !== null && (ui.step === "m" || ui.step === "done" || false) && a.m !== null && ui.step === "done";
+    document.getElementById("qnum").textContent = "Question " + (state.pos + 1) + " of 100";
+    document.getElementById("level").textContent = LEVELS[q.lv].name + " · " + LEVELS[q.lv].note;
+    document.getElementById("graph").innerHTML = graph(q, a.b !== null && ui.step !== "b", a.m !== null && ui.step === "done");
+    document.getElementById("legend").textContent = q.dots ? "Dots mark points where the line crosses the grid exactly." : "No dots on this level. Look for grid corners the line passes through.";
+    var h = '<div class="steps"><span class="chip' + (ui.step === "b" ? " on" : chipState(q, "b")) + '">1 · y-intercept b</span><span class="chip' + (ui.step === "m" ? " on" : chipState(q, "m")) + '">2 · slope m</span></div>';
+    if (ui.step === "b") {
+      h += '<div class="prompt"><h2>What is the y-intercept, b?</h2><p>Where does the line cross the y-axis?</p></div>' + choiceBtns(q.bChoices, "b", q.bAns, null, false);
+      h += '<p class="hint">Tap an answer or press 1 to 5.</p>';
+    } else if (ui.step === "bfb") {
+      var okb = a.b === q.bAns;
+      h += '<div class="prompt"><h2>What is the y-intercept, b?</h2></div>' + choiceBtns(q.bChoices, "b", q.bAns, a.b, true);
+      h += '<div class="fb ' + (okb ? "good" : "bad") + '"><b>' + (okb ? "Correct." : "Not quite.") + '</b> ' + explainB(q, q.bChoices[a.b]) + '</div>';
+      h += '<button type="button" class="btn" id="next" autofocus>Now find the slope</button><span class="hint">Press Enter to continue.</span>';
+    } else if (ui.step === "m") {
+      h += '<div class="prompt"><h2>What is the slope, m?</h2><p>Start at the y-intercept and count rise over run.</p></div>' + choiceBtns(q.mChoices, "m", q.mAns, null, false);
+      h += '<p class="hint">Tap an answer or press 1 to 5.</p>';
+    } else {
+      var okb2 = a.b === q.bAns, okm = a.m === q.mAns;
+      h += '<div class="prompt"><h2>What is the slope, m?</h2></div>' + choiceBtns(q.mChoices, "m", q.mAns, a.m, true);
+      h += '<div class="fb ' + (okm ? "good" : "bad") + '"><b>' + (okm ? "Correct." : "Not quite.") + '</b> ' + explainM(q, q.mChoices[a.m]) + '</div>';
+      h += '<div class="fb ' + (okb2 ? "good" : "bad") + '"><b>y-intercept:</b> ' + (okb2 ? "you chose b = " + num(q.b) + ", which is right." : "you chose b = " + num(q.bChoices[a.b]) + ". " + explainB(q, null)) + '</div>';
+      h += state.pos < 99 ? '<button type="button" class="btn" id="next" autofocus>Next question</button><span class="hint">Press Enter to continue.</span>' : '<span class="hint">That was the last question. See your results below.</span>';
+    }
+    document.getElementById("panel").innerHTML = h;
+    renderMap(); renderStats();
+  }
+
+  // ---------- map, stats, results ----------
+  function cellClass(q) {
+    var a = state.answers[q.id]; if (!a || a.b === null) return "";
+    if (a.m === null) return " part";
+    var n = (a.b === q.bAns ? 1 : 0) + (a.m === q.mAns ? 1 : 0);
+    return n === 2 ? " good" : (n === 1 ? " warn" : " bad");
+  }
+  function renderMap() {
+    var o = order(), h = "";
+    o.forEach(function (id, i) {
+      var q = BANK[id - 1];
+      h += '<button type="button" class="cell' + cellClass(q) + (i === state.pos ? " cur" : "") + '" data-pos="' + i + '" aria-label="Question ' + (i + 1) + '">' + (i + 1) + '</button>';
+    });
+    document.getElementById("map").innerHTML = h;
+    document.getElementById("mode-levels").className = state.mode === "levels" ? "on" : "";
+    document.getElementById("mode-shuffled").className = state.mode === "shuffled" ? "on" : "";
+  }
+  function totals() {
+    var done = 0, right = 0, steps = 0, per = [0, 1, 2].map(function () { return { b: 0, m: 0, n: 0, bAns: 0, mAns: 0 }; });
+    BANK.forEach(function (q) {
+      var a = state.answers[q.id]; if (!a) return;
+      var P = per[q.lv];
+      if (a.b !== null) { steps++; P.bAns++; if (a.b === q.bAns) { right++; P.b++; } }
+      if (a.m !== null) { steps++; P.mAns++; if (a.m === q.mAns) { right++; P.m++; } }
+      if (a.b !== null && a.m !== null) done++;
+    });
+    return { done: done, right: right, steps: steps, per: per };
+  }
+  function renderStats() {
+    var t = totals();
+    var pct = t.steps ? Math.round(100 * t.right / t.steps) + "%" : "–";
+    document.getElementById("stats").innerHTML =
+      '<div class="stat"><b>' + t.done + ' / 100</b><span>Finished</span></div>' +
+      '<div class="stat"><b>' + t.right + ' / ' + t.steps + '</b><span>Right answers</span></div>' +
+      '<div class="stat"><b>' + pct + '</b><span>Accuracy</span></div>';
+    var box = document.getElementById("results");
+    if (t.done === 100) {
+      var rows = t.per.map(function (P, i) { return '<tr><td>' + LEVELS[i].name + ' · ' + LEVELS[i].note + '</td><td>' + P.b + ' / ' + P.bAns + '</td><td>' + P.m + ' / ' + P.mAns + '</td></tr>'; }).join("");
+      box.innerHTML = '<h2>Your results</h2><table><thead><tr><th>Level</th><th>b right</th><th>m right</th></tr></thead><tbody>' + rows + '</tbody></table>';
+      box.hidden = false;
+    } else box.hidden = true;
+  }
+
+  // ---------- actions ----------
+  function pick(i) {
+    var q = cur(), a = ans(q);
+    if (ui.step === "b") { a.b = i; ui.step = "bfb"; }
+    else if (ui.step === "m") { a.m = i; ui.step = "done"; }
+    else return;
+    save(); render(); var n = document.getElementById("next"); if (n) n.focus();
+  }
+  function advance() {
+    if (ui.step === "bfb") { ui.step = "m"; render(); }
+    else if (ui.step === "done" && state.pos < 99) go(state.pos + 1);
+  }
+  function go(pos) { state.pos = pos; ui.qid = null; save(); render(); window.scrollTo({ top: 0, behavior: "smooth" }); }
+
+  document.getElementById("panel").addEventListener("click", function (e) {
+    var c = e.target.closest(".choice"); if (c && !c.disabled) return pick(+c.dataset.i);
+    if (e.target.closest("#next")) advance();
+  });
+  document.getElementById("map").addEventListener("click", function (e) {
+    var c = e.target.closest(".cell"); if (c) go(+c.dataset.pos);
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key >= "1" && e.key <= "5" && (ui.step === "b" || ui.step === "m")) { pick(+e.key - 1); e.preventDefault(); }
+    else if (e.key === "Enter" && (ui.step === "bfb" || ui.step === "done") && document.activeElement && document.activeElement.id !== "restart" && !document.activeElement.classList.contains("cell") && !document.activeElement.closest(".seg")) { advance(); e.preventDefault(); }
+  });
+  function setMode(mode) {
+    var id = cur().id; state.mode = mode;
+    if (mode === "shuffled" && !state.seedSet) { state.seed = Math.floor(Math.random() * 1e6) + 1; state.seedSet = true; }
+    state.pos = order().indexOf(id); ui.qid = null; save(); render();
+  }
+  document.getElementById("mode-levels").addEventListener("click", function () { setMode("levels"); });
+  document.getElementById("mode-shuffled").addEventListener("click", function () { setMode("shuffled"); });
+  var rbtn = document.getElementById("restart"), rtimer = null;
+  rbtn.addEventListener("click", function () {
+    if (rbtn.dataset.armed) {
+      clearTimeout(rtimer); delete rbtn.dataset.armed; rbtn.textContent = "Restart";
+      state.answers = {}; state.pos = 0; ui.qid = null; save(); render(); window.scrollTo({ top: 0 });
+    } else {
+      rbtn.dataset.armed = "1"; rbtn.textContent = "Tap again to clear all answers";
+      rtimer = setTimeout(function () { delete rbtn.dataset.armed; rbtn.textContent = "Restart"; }, 4000);
+    }
+  });
+
+  render();
+  // ---------- results collection (Google Form) ----------
+  var FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeni96aTfsz3z1rWyF9fYFYFD8NLjvBJCA_CD5uK2BORch-rg/formResponse";
+  var F_NAME = "entry.711275084", F_SCORE = "entry.1948245088", F_ANS = "entry.1424329923";
+  var syncEl = document.getElementById("sync"), nameEl = document.getElementById("sname"), sendBtn = document.getElementById("send");
+  nameEl.value = state.name || "";
+  function setSync(t) { syncEl.textContent = t; }
+  // One entry per question: "7:RW" = question 7, b right, m wrong. R = right, W = wrong, - = not answered.
+  function mark(a, which, q) { var v = a ? a[which] : null; if (v === null || v === undefined) return "-"; return v === q[which + "Ans"] ? "R" : "W"; }
+  function answersString() {
+    return BANK.map(function (q) { var a = state.answers[q.id]; return q.id + ":" + mark(a, "b", q) + mark(a, "m", q); }).join(" ");
+  }
+  function send() {
+    var name = (state.name || "").trim();
+    if (!name) { setSync("Type your name first."); nameEl.focus(); return; }
+    var t = totals();
+    if (t.steps === 0) { setSync("Answer at least one question first."); return; }
+    var body = new URLSearchParams();
+    body.set(F_NAME, name);
+    body.set(F_SCORE, t.right + " right of " + t.steps + " answered (" + t.done + " of 100 finished)");
+    body.set(F_ANS, answersString());
+    sendBtn.disabled = true; setSync("Sending…");
+    fetch(FORM_URL, { method: "POST", mode: "no-cors", body: body }).then(function () {
+      sendBtn.disabled = false;
+      setSync("Sent to your teacher at " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + ".");
+    }, function () {
+      sendBtn.disabled = false; setSync("Could not send. Check your internet and try again.");
+    });
+  }
+  sendBtn.addEventListener("click", send);
+  nameEl.addEventListener("input", function () { state.name = nameEl.value; save(); });
+  // Send automatically once, when a student finishes all 100 questions.
+  var _save = save;
+  save = function () {
+    _save();
+    var t = totals();
+    if (t.done < 100) { if (state.autoSent) { state.autoSent = false; _save(); } }
+    else if (!state.autoSent && (state.name || "").trim()) { state.autoSent = true; _save(); send(); }
+  };
+})();
+</script>

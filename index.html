@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Pre-Algebra Practice</title>
 <style>
-:root{--bg:#f3f6fb;--surface:#fff;--ink:#14213d;--muted:#5a6688;--line:#d8dfee;--accent:#2457c5;--accent-soft:#e3ebfb;--accent-ink:#fff;--good:#1b7a45;--good-soft:#def3e6;--font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-@media (prefers-color-scheme:dark){:root{--bg:#0e1526;--surface:#161e33;--ink:#e8edf9;--muted:#9aa7c7;--line:#2a3556;--accent:#7ea6ff;--accent-soft:#1f2e55;--accent-ink:#0e1526;--good:#5fd38d;--good-soft:#15352a;color-scheme:dark}}
+:root{--bg:#f3f6fb;--surface:#fff;--ink:#14213d;--muted:#5a6688;--line:#d8dfee;--accent:#2457c5;--accent-soft:#e3ebfb;--accent-ink:#fff;--good:#1b7a45;--good-soft:#def3e6;--bad:#b3261e;--bad-soft:#fbe5e3;--warn:#9a5b00;--warn-soft:#fbecd2;--pulse:179,38,30;--font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+@media (prefers-color-scheme:dark){:root{--bg:#0e1526;--surface:#161e33;--ink:#e8edf9;--muted:#9aa7c7;--line:#2a3556;--accent:#7ea6ff;--accent-soft:#1f2e55;--accent-ink:#0e1526;--good:#5fd38d;--good-soft:#15352a;--bad:#ff8a80;--bad-soft:#3d1f22;--warn:#f0b45a;--warn-soft:#3b2e14;--pulse:255,138,128;color-scheme:dark}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--font);padding:28px max(16px,env(safe-area-inset-right,0px)) 48px max(16px,env(safe-area-inset-left,0px))}
 .shell{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
@@ -17,13 +17,18 @@ h1{margin:0;font-size:clamp(1.7rem,3vw + 1rem,2.5rem);line-height:1.1}
 .item a:hover{border-color:var(--accent);transform:translateY(-1px)}
 .item a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .icon{flex:none;width:52px;height:52px;border-radius:12px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-size:1.6rem}
-.body{flex:1;min-width:0}
+.body{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start}
 .title{font-weight:700;font-size:1.15rem;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .new{font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--good);background:var(--good-soft);padding:2px 8px;border-radius:999px}
 .desc{color:var(--muted);font-size:.93rem;margin-top:2px}
 .date{color:var(--muted);font-size:.82rem;margin-top:4px}
 .go{flex:none;color:var(--accent);font-weight:700;font-size:1.3rem}
 .empty{color:var(--muted)}
+.msg{display:inline-block;margin-top:8px;font-weight:700;font-size:.92rem;padding:4px 12px;border-radius:999px;border:1.5px solid}
+.msg.due{color:var(--bad);background:var(--bad-soft);border-color:var(--bad)}
+.msg.note{color:var(--warn);background:var(--warn-soft);border-color:var(--warn)}
+@media (prefers-reduced-motion:no-preference){.msg.due{animation:pulse 1.4s ease-in-out infinite}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(var(--pulse),.55);opacity:1}50%{box-shadow:0 0 0 7px rgba(var(--pulse),0);opacity:.72}}
 @media (max-width:520px){.icon{width:42px;height:42px;font-size:1.3rem}.item a{padding:14px}}
 </style>
 </head>
@@ -39,12 +44,13 @@ h1{margin:0;font-size:clamp(1.7rem,3vw + 1rem,2.5rem);line-height:1.1}
 // ---------- TEACHER: add or edit pages here ----------
 // To add a page: copy one line, change the file name, title, description, and date (YYYY-MM-DD).
 // The newest date shows first, and pages from the last 7 days get a "New" tag.
+// Optional messages on a card:  due: "Due for 11/24"  (red, pulsing)   note: "Complete at least 20 problems"  (calm yellow)
+// To remove a message, delete that part of the line (including the comma after it).
 var PAGES = [
-  { file: "slope_from_points.html", icon: "\uD83D\uDCCF", title: "Slope From Two Points", desc: "Plot two points, write the slope formula, and calculate the slope. 30 questions.", date: "2026-11-23" },
-  { file: "combining_like_terms.html", icon: "\u2795", title: "Combining Like Terms", desc: "Add the x-terms, then the plain numbers. 100 expressions.", date: "2026-11-22" },
+  { file: "slope_from_points.html", icon: "\uD83D\uDCCF", title: "Slope From Two Points", desc: "Plot two points, write the slope formula, and calculate the slope. 30 questions.", date: "2026-11-23", due: "Due for 11/24" },
   { file: "plot_the_points.html",    icon: "\uD83D\uDCCD", title: "Plot the Points",           desc: "Drag points like (3, \u22122) onto the coordinate plane. 25 sets.",                         date: "2026-11-22" },
   { file: "solving_equations.html",  icon: "\u2696\uFE0F", title: "Solving Equations in 5 Steps", desc: "Distribute, combine like terms, isolate x, divide, and check. 100 problems.",         date: "2026-11-22" },
-  { file: "slope_drill.html",        icon: "\uD83D\uDCC8", title: "Slope and Intercept Drill",  desc: "Find the y-intercept and slope from tables and graphs. 100 questions.",                   date: "2026-11-21" }
+  { file: "slope_drill.html",        icon: "\uD83D\uDCC8", title: "Slope and Intercept Drill",  desc: "Find the y-intercept and slope from tables and graphs. 100 questions.",                   date: "2026-11-21", note: "Complete at least 20 problems" }
 ];
 // -----------------------------------------------------
 (function () {
@@ -56,7 +62,7 @@ var PAGES = [
   if (!sorted.length) { list.innerHTML = '<li class="empty">No pages yet.</li>'; return; }
   list.innerHTML = sorted.map(function (p) {
     var d = parse(p.date), fresh = (now - d) / 864e5 <= 7 && now >= d;
-    return '<li class="item"><a href="' + esc(p.file) + '"><span class="icon" aria-hidden="true">' + p.icon + '</span><span class="body"><span class="title">' + esc(p.title) + (fresh ? '<span class="new">New</span>' : "") + '</span><span class="desc">' + esc(p.desc) + '</span><span class="date">Added ' + MONTHS[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear() + '</span></span><span class="go" aria-hidden="true">\u203A</span></a></li>';
+    return '<li class="item"><a href="' + esc(p.file) + '"><span class="icon" aria-hidden="true">' + p.icon + '</span><span class="body"><span class="title">' + esc(p.title) + (fresh ? '<span class="new">New</span>' : "") + '</span><span class="desc">' + esc(p.desc) + '</span><span class="date">Added ' + MONTHS[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear() + '</span>' + (p.due ? '<span class="msg due">' + esc(p.due) + "</span>" : "") + (p.note ? '<span class="msg note">' + esc(p.note) + "</span>" : "") + '</span><span class="go" aria-hidden="true">\u203A</span></a></li>';
   }).join("");
 })();
 </script>

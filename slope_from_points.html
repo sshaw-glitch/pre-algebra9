@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Slope From Two Points</title>
+<style>
+:root{--bg:#f3f6fb;--surface:#fff;--ink:#14213d;--muted:#5a6688;--line:#d8dfee;--accent:#2457c5;--accent-soft:#e3ebfb;--accent-ink:#fff;--good:#1b7a45;--good-soft:#def3e6;--bad:#b3261e;--bad-soft:#fbe5e3;--warn:#9a5b00;--warn-soft:#fbecd2;--font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+@media (prefers-color-scheme:dark){:root{--bg:#0e1526;--surface:#161e33;--ink:#e8edf9;--muted:#9aa7c7;--line:#2a3556;--accent:#7ea6ff;--accent-soft:#1f2e55;--accent-ink:#0e1526;--good:#5fd38d;--good-soft:#15352a;--bad:#ff8a80;--bad-soft:#3d1f22;--warn:#f0b45a;--warn-soft:#3b2e14;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--font);padding:20px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px))}
+.shell{max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1,h2{margin:0}
+.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:10px 24px}
+.top h1{font-size:clamp(1.5rem,2.4vw + 1rem,2.1rem);line-height:1.1}
+.top p{margin:4px 0 0;color:var(--muted)}
+.stats{display:flex;flex-wrap:wrap;gap:8px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 12px;min-width:88px}
+.stat b{display:block;font-size:1.2rem;font-variant-numeric:tabular-nums}
+.stat span{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+.who{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 16px}
+.who label{font-weight:600}
+.who input{font:500 1rem var(--font);padding:9px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);flex:1 1 180px;max-width:280px;min-width:0}
+.sync{color:var(--muted);font-size:.85rem}
+.stage{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;align-items:start}
+.qhead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 12px;margin-bottom:10px}
+.qnum{font-weight:700;font-size:1.1rem}
+.level{font-size:.78rem;color:var(--accent);background:var(--accent-soft);padding:3px 10px;border-radius:999px;font-weight:600}
+#plane{width:100%;max-width:520px;display:block;margin:0 auto;background:var(--bg);border:1px solid var(--line);border-radius:10px;touch-action:manipulation;user-select:none}
+.gl{stroke:var(--line);stroke-width:1}
+.gl.ax{stroke:var(--muted);stroke-width:1.8}
+#plane text{fill:var(--muted);font:600 9px var(--font)}
+#plane text.pl{fill:var(--good);font:700 13px var(--font)}
+.pt{fill:var(--good);stroke:var(--surface);stroke-width:2}
+.seg{stroke:var(--good);stroke-width:2;stroke-dasharray:5 4}
+.bad{fill:var(--bad);opacity:.75}
+.panel{display:flex;flex-direction:column;gap:12px}
+.panel h2{font-size:1.1rem}
+.panel p{margin:0;color:var(--muted);font-size:.92rem}
+.tray{display:flex;flex-wrap:wrap;gap:10px}
+.chip{font:700 1.1rem var(--font);padding:10px 16px;border-radius:12px;border:2px solid var(--accent);background:var(--accent-soft);color:var(--accent);cursor:grab;touch-action:none;user-select:none;min-height:48px;font-variant-numeric:tabular-nums}
+.chip.sel{background:var(--accent);color:var(--accent-ink)}
+.chip.placed{border-color:var(--good);background:var(--good-soft);color:var(--good);cursor:default}
+.ghost{position:fixed;z-index:50;pointer-events:none;transform:translate(-50%,-130%);box-shadow:0 6px 18px rgba(0,0,0,.3)}
+details{font-size:.9rem;color:var(--muted)}
+summary{cursor:pointer;font-weight:600;color:var(--ink)}
+details p{margin:6px 0}
+.formula{font-weight:700;font-size:1.05rem;padding:8px 12px;background:var(--accent-soft);border-radius:10px;color:var(--accent);text-align:center}
+.row{display:flex;flex-direction:column;gap:6px;padding:10px 0;border-top:1px solid var(--line)}
+.row.off{opacity:.45}
+.inrow{display:flex;gap:8px;flex-wrap:wrap}
+.inrow input{flex:1 1 180px;min-width:0;font:600 1.1rem var(--font);padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+.inrow input:focus{border-color:var(--accent);outline:none}
+.val{font-weight:700;font-size:1.05rem;color:var(--good);background:var(--good-soft);border-radius:10px;padding:8px 12px;overflow-wrap:anywhere}
+.fb{border-radius:10px;padding:9px 13px;font-size:.93rem;border:1px solid}
+.fb.bad{background:var(--bad-soft);border-color:var(--bad)}
+.fb.good{background:var(--good-soft);border-color:var(--good)}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;padding:10px 20px;font:600 1rem var(--font);cursor:pointer;min-height:46px;align-self:flex-start}
+.btn:disabled{opacity:.6;cursor:default}
+.btn:focus-visible,.cell:focus-visible,.chip:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.lowerhead h2{font-size:1.1rem;margin-bottom:12px}
+.map{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:5px;max-width:520px}
+.cell{aspect-ratio:1;border-radius:6px;border:1.5px solid var(--line);background:transparent;color:var(--muted);font:600 .72rem var(--font);cursor:pointer;padding:0}
+.cell:disabled{opacity:.4;cursor:default}
+.cell.good{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.cell.warn{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.cell.part{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.cell.cur{box-shadow:0 0 0 2.5px var(--ink)}
+.key{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.8rem;color:var(--muted);margin-top:10px}
+@media (max-width:760px){.stage{grid-template-columns:minmax(0,1fr)}.card{padding:12px}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <a href="./" style="color:var(--accent,#2457c5);font-weight:600;text-decoration:none;align-self:flex-start">← All pages</a>
+  <header class="top">
+    <div><h1>Slope From Two Points</h1><p>Plot the points, then use the slope formula. Each part must be correct to move on.</p></div>
+    <div class="stats" id="stats" aria-live="polite"></div>
+  </header>
+  <div class="card who">
+    <label for="sname">Your name</label>
+    <input id="sname" type="text" maxlength="60" autocomplete="name" placeholder="First and last name">
+    <span class="sync" id="sync" aria-live="polite">Your answers are sent to your teacher after every part.</span>
+  </div>
+  <section class="stage">
+    <div class="card">
+      <div class="qhead"><span class="qnum" id="qnum"></span><span class="level" id="level"></span></div>
+      <div id="planebox"></div>
+    </div>
+    <div class="card panel" id="panel"></div>
+  </section>
+  <section class="card lower">
+    <div class="lowerhead"><h2>All 30 questions</h2></div>
+    <div class="map" id="map"></div>
+    <div class="key"><span>Green: every part right on the first try</span><span>Yellow: needed retries</span><span>Blue: in progress</span></div>
+  </section>
+</div>
+<script>
+(function () {
+  // ---------- teacher setup: paste your Google Form link and field IDs here ----------
+  var FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSf7mG5WuaeauEanLNiYGDlOOAJ1kFUgqVsuXn2_jbwHMRLnFw/formResponse";
+  var F_NAME = "entry.163001036", F_SCORE = "entry.1785029471", F_ANS = "entry.1778186495";
+
+  var M = "\u2212", N = 30, LEVELS = ["Level 1: slopes that go up", "Level 2: all four quadrants", "Level 3: fractions and flat lines"];
+  function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  function ri(r, lo, hi) { return lo + Math.floor(r() * (hi - lo + 1)); }
+  function num(n) { return n < 0 ? M + Math.abs(n) : "" + n; }
+  function pt(x, y) { return "(" + num(x) + ", " + num(y) + ")"; }
+  function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { var t = b; b = a % b; a = t; } return a || 1; }
+
+  // ---------- 30 questions (same for every student) ----------
+  function valPat(v, first) { return v < 0 ? (first ? "\\(?-" + -v + "\\)?" : "\\(-" + -v + "\\)") : "\\(?" + v + "\\)?"; }
+  function pairRe(a, b) { return "\\(" + valPat(a, true) + "-" + valPat(b, false) + "\\)"; }
+  function build(id) {
+    var r = rng(id * 6151 + 17), lvl = id <= 10 ? 0 : id <= 20 ? 1 : 2, x1, y1, x2, y2, dx, m;
+    for (var t = 0; t < 800; t++) {
+      if (lvl === 0) { x1 = ri(r, 1, 5); y1 = ri(r, 1, 5); dx = ri(r, 1, 4); m = ri(r, 1, 3); x2 = x1 + dx; y2 = y1 + m * dx; }
+      else if (lvl === 1) { x1 = ri(r, -7, 7); y1 = ri(r, -7, 7); dx = ri(r, 1, 4) * (r() < 0.5 ? -1 : 1); m = ri(r, 1, 3) * (r() < 0.5 ? -1 : 1); x2 = x1 + dx; y2 = y1 + m * dx; }
+      else { x1 = ri(r, -8, 8); y1 = ri(r, -8, 8); x2 = ri(r, -8, 8); y2 = id % 6 === 0 ? y1 : ri(r, -8, 8); }
+      if ([x1, y1, x2, y2].every(function (v) { return Math.abs(v) <= 8; }) && x1 !== x2 && (lvl === 0 || y1 !== y2 || id % 6 === 0)) break;
+    }
+    var dy = y2 - y1, ddx = x2 - x1, g = gcd(dy, ddx), sn = dy / g * (ddx < 0 ? -1 : 1), sd = Math.abs(ddx / g);
+    return { id: id, lvl: lvl, p: [{ x: x1, y: y1 }, { x: x2, y: y2 }], dy: dy, dx: ddx, sn: sn, sd: sd,
+      reA: new RegExp("^" + pairRe(y2, y1) + "/" + pairRe(x2, x1) + "$"), reB: new RegExp("^" + pairRe(y1, y2) + "/" + pairRe(x1, x2) + "$") };
+  }
+  var BANK = []; for (var i = 1; i <= N; i++) BANK.push(build(i));
+
+  // ---------- checking answers ----------
+  function balanced(v) { var b = 0; for (var c = 0; c < v.length; c++) { if (v[c] === "(") b++; else if (v[c] === ")" && --b < 0) return false; } return b === 0; }
+  function checkEq(q, raw) { var v = raw.toLowerCase().replace(/[\u2212\u2013]/g, "-").replace(/\s+/g, "").replace(/\u00F7/g, "/"); return balanced(v) && (q.reA.test(v) || q.reB.test(v)); }
+  function checkVal(q, raw) {
+    var t = raw.toLowerCase().replace(/[\u2212\u2013]/g, "-").replace(/\s+/g, ""), m, v;
+    if ((m = t.match(/^(-?\d+)\/(-?\d+)$/))) { var b = +m[2]; return b !== 0 && +m[1] * q.sd === q.sn * b; }
+    v = Number(t); return t !== "" && !isNaN(v) && Math.abs(v - q.dy / q.dx) <= 0.01;
+  }
+
+  // ---------- state ----------
+  var KEY = "slopeCalc.v1", state = { answers: {}, pos: 0, name: "" };
+  try { var raw = localStorage.getItem(KEY); if (raw) { var sv = JSON.parse(raw); if (sv && sv.answers) state = Object.assign(state, sv); } } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  var ui = { qid: null, sel: null, msg: "", wrong: null, val: "", focus: false };
+  function cur() { state.pos = Math.max(0, Math.min(N - 1, state.pos)); return BANK[state.pos]; }
+  function ans(q) { return state.answers[q.id] || (state.answers[q.id] = { d: [0, 0, 0, 0], w: [0, 0, 0, 0], x: ["", "", "", ""] }); }
+  function complete(q) { var a = state.answers[q.id]; return !!a && a.d.indexOf(0) < 0; }
+  function totals() {
+    var done = 0, right = 0, steps = 0;
+    BANK.forEach(function (q) { var a = state.answers[q.id]; if (!a) return; if (complete(q)) done++; a.d.forEach(function (d, i) { if (d) { steps++; if (a.w[i] === 0) right++; } }); });
+    return { done: done, right: right, steps: steps };
+  }
+
+  // ---------- drawing ----------
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function plane(q, a) {
+    var s = '<svg id="plane" viewBox="0 0 440 440" role="img" aria-label="Coordinate plane from \u221210 to 10">', i, p;
+    for (i = -10; i <= 10; i++) { p = 220 + i * 20; s += '<line class="gl' + (i === 0 ? " ax" : "") + '" x1="' + p + '" y1="10" x2="' + p + '" y2="430"/><line class="gl' + (i === 0 ? " ax" : "") + '" x1="10" y1="' + p + '" x2="430" y2="' + p + '"/>'; }
+    for (i = -10; i <= 10; i += 2) if (i) s += '<text x="' + (220 + i * 20) + '" y="233" text-anchor="middle">' + num(i) + '</text><text x="214" y="' + (223 - i * 20) + '" text-anchor="end">' + num(i) + "</text>";
+    var P = q.p.map(function (c) { return [220 + c.x * 20, 220 - c.y * 20]; });
+    if (a.d[0] && a.d[1]) s += '<line class="seg" x1="' + P[0][0] + '" y1="' + P[0][1] + '" x2="' + P[1][0] + '" y2="' + P[1][1] + '"/>';
+    P.forEach(function (c, k) { if (a.d[k]) s += '<circle class="pt" cx="' + c[0] + '" cy="' + c[1] + '" r="6.5"/><text class="pl" x="' + (c[0] + 9) + '" y="' + (c[1] - 8) + '">' + (k + 1) + "</text>"; });
+    if (ui.wrong) s += '<circle class="bad" cx="' + (220 + ui.wrong.x * 20) + '" cy="' + (220 - ui.wrong.y * 20) + '" r="6.5"/>';
+    return s + "</svg>";
+  }
+  function render() {
+    var q = cur(), a = ans(q); if (ui.qid !== q.id) { ui.qid = q.id; ui.sel = null; ui.msg = ""; ui.wrong = null; ui.val = ""; }
+    $("qnum").textContent = "Question " + q.id + " of " + N; $("level").textContent = LEVELS[q.lvl]; $("planebox").innerHTML = plane(q, a);
+    var h = "<h2>Part 1: Place the points</h2><p>Drag each point onto the grid, or tap a point and then tap the grid.</p><div class=\"tray\">";
+    q.p.forEach(function (c, k) { h += '<div class="chip' + (a.d[k] ? " placed" : ui.sel === k ? " sel" : "") + '" data-k="' + k + '" tabindex="' + (a.d[k] ? -1 : 0) + '" role="button">Point ' + (k + 1) + " " + pt(c.x, c.y) + (a.d[k] ? " \u2713" : "") + "</div>"; });
+    h += "</div>";
+    var p1 = a.d[0] && a.d[1], fi = p1 ? a.d.indexOf(0, 2) : -1;
+    if (!p1 && ui.msg) h += '<div class="fb bad">' + ui.msg + "</div>";
+    h += '<h2>Part 2: Find the slope</h2><div class="formula">slope = (y\u2082 \u2212 y\u2081) \u00F7 (x\u2082 \u2212 x\u2081)</div><details><summary>How to type your answers</summary><p>Put your numbers into the formula, like <b>(10-3)/(6-1)</b>. Use parentheses around the top and the bottom. Put a negative number in parentheses when it comes after a minus sign, like <b>5-(-3)</b>.</p><p>Then type what it equals as a whole number, a fraction like <b>3/2</b>, or a decimal.</p></details>';
+    [["Write the slope formula with the numbers from your points.", "example: (10-3)/(6-1)"], ["What does it equal?", "a number or a fraction"]].forEach(function (L, j) {
+      var i = j + 2, done = a.d[i], act = i === fi;
+      h += '<div class="row' + (done || act ? "" : " off") + '"><label for="in' + i + '"><b>' + (j + 1) + ".</b> " + L[0] + "</label>";
+      if (done) h += '<div class="val">' + esc(a.x[i]) + " \u2713</div>";
+      else h += '<div class="inrow"><input id="in' + i + '" data-i="' + i + '" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="' + L[1] + '"' + (act ? "" : " disabled") + '><button type="button" class="btn go" data-i="' + i + '"' + (act ? "" : " disabled") + ">Submit</button></div>";
+      if (act && ui.msg) h += '<div class="fb bad">' + ui.msg + "</div>";
+      h += "</div>";
+    });
+    if (complete(q)) h += '<div class="fb good"><b>Question finished.</b></div>' + (state.pos < N - 1 ? '<button type="button" class="btn" id="next">Next question</button>' : "<p>That was the last question.</p>");
+    $("panel").innerHTML = h;
+    var inp = fi >= 0 && $("in" + fi); if (inp) { inp.value = ui.val; if (ui.focus) inp.focus(); }
+    var t = totals();
+    $("stats").innerHTML = '<div class="stat"><b>' + t.done + " / " + N + '</b><span>Finished</span></div><div class="stat"><b>' + t.right + " / " + t.steps + '</b><span>First-try right</span></div><div class="stat"><b>' + (t.steps ? Math.round(100 * t.right / t.steps) + "%" : "\u2013") + "</b><span>First-try rate</span></div>";
+    var open = BANK.findIndex(function (b) { return !complete(b); }); if (open < 0) open = N - 1;
+    $("map").innerHTML = BANK.map(function (b, i) {
+      var x = state.answers[b.id], cls = "cell";
+      if (complete(b)) cls += x.w.every(function (w) { return w === 0; }) ? " good" : " warn"; else if (x && x.d.indexOf(1) >= 0) cls += " part";
+      if (i === state.pos) cls += " cur";
+      return '<button type="button" class="' + cls + '" data-pos="' + i + '"' + (i > open ? " disabled" : "") + ' aria-label="Question ' + b.id + '">' + b.id + "</button>";
+    }).join("");
+  }
+
+  // ---------- answering ----------
+  function needName() { if ((state.name || "").trim()) return false; setSync("Type your name first, then answer."); nameEl.focus(); return true; }
+  function finish() { ui.msg = ""; ui.wrong = null; ui.val = ""; ui.focus = true; save(); render(); send(); }
+  function place(k, cx, cy) {
+    var R = $("plane").getBoundingClientRect(), q = cur(), a = ans(q), P = q.p[k];
+    if (a.d[k] || cx < R.left || cx > R.right || cy < R.top || cy > R.bottom || needName()) return;
+    var f = 440 / R.width, gx = Math.round(((cx - R.left) * f - 220) / 20), gy = Math.round((220 - (cy - R.top) * f) / 20);
+    if (Math.abs(gx) > 10 || Math.abs(gy) > 10) { ui.msg = "Drop the point inside the grid."; ui.wrong = null; render(); return; }
+    if (gx === P.x && gy === P.y) { a.d[k] = 1; ui.sel = null; finish(); }
+    else { a.w[k]++; ui.wrong = { x: gx, y: gy }; ui.msg = "Not correct. Try again."; save(); render(); }
+  }
+  function submit(i) {
+    var q = cur(), a = ans(q), inp = $("in" + i); if (!inp || !inp.value.trim() || a.d[i] || needName()) return;
+    if ((i === 2 ? checkEq : checkVal)(q, inp.value)) { a.d[i] = 1; a.x[i] = inp.value.trim().slice(0, 40); finish(); }
+    else { a.w[i]++; ui.val = inp.value; ui.msg = "Not correct. Try again."; ui.focus = true; save(); render(); }
+  }
+  var drag = null;
+  $("panel").addEventListener("pointerdown", function (e) {
+    var c = e.target.closest(".chip"); if (!c || c.classList.contains("placed")) return;
+    drag = { k: +c.dataset.k, x: e.clientX, y: e.clientY, moved: false, ghost: null, label: c.textContent }; e.preventDefault();
+  });
+  window.addEventListener("pointermove", function (e) {
+    if (!drag) return;
+    if (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 6) { drag.moved = true; drag.ghost = document.createElement("div"); drag.ghost.className = "chip sel ghost"; drag.ghost.textContent = drag.label; document.body.appendChild(drag.ghost); }
+    if (drag.ghost) { drag.ghost.style.left = e.clientX + "px"; drag.ghost.style.top = e.clientY + "px"; }
+  });
+  window.addEventListener("pointerup", function (e) {
+    if (!drag) return; var d = drag; drag = null;
+    if (d.ghost) { d.ghost.remove(); place(d.k, e.clientX, e.clientY); } else { ui.sel = ui.sel === d.k ? null : d.k; render(); }
+  });
+  window.addEventListener("pointercancel", function () { if (drag && drag.ghost) drag.ghost.remove(); drag = null; });
+  $("planebox").addEventListener("click", function (e) { if (ui.sel !== null && e.target.closest("#plane")) place(ui.sel, e.clientX, e.clientY); });
+  $("panel").addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && e.target.matches("input[data-i]")) { e.preventDefault(); return submit(+e.target.dataset.i); }
+    var c = e.target.closest(".chip"); if (c && (e.key === "Enter" || e.key === " ") && !c.classList.contains("placed")) { e.preventDefault(); ui.sel = ui.sel === +c.dataset.k ? null : +c.dataset.k; render(); }
+  });
+  $("panel").addEventListener("input", function (e) { if (e.target.matches("input[data-i]")) ui.val = e.target.value; });
+  $("panel").addEventListener("click", function (e) {
+    var g = e.target.closest(".go"); if (g && !g.disabled) return submit(+g.dataset.i);
+    if (e.target.closest("#next")) go(state.pos + 1);
+  });
+  function go(pos) { state.pos = pos; ui.qid = null; save(); render(); window.scrollTo({ top: 0, behavior: "smooth" }); }
+  $("map").addEventListener("click", function (e) { var c = e.target.closest(".cell"); if (c && !c.disabled) go(+c.dataset.pos); });
+  render();
+
+  // ---------- results collection (Google Form) ----------
+  var syncEl = $("sync"), nameEl = $("sname");
+  nameEl.value = state.name || "";
+  // device code (random, not tied to identity) and active minutes, shown with each result
+  var DEV = (function () { try { var d = localStorage.getItem("deviceCode.v1"); if (!d) { d = Math.random().toString(16).slice(2, 8); localStorage.setItem("deviceCode.v1", d); } return d; } catch (e) { return "none"; } })();
+  var TKEY = KEY + ".sec", activeSec = 0, lastAct = Date.now();
+  try { activeSec = +localStorage.getItem(TKEY) || 0; } catch (e) {}
+  ["pointerdown", "keydown", "input"].forEach(function (ev) { window.addEventListener(ev, function () { lastAct = Date.now(); }, true); });
+  setInterval(function () { if (document.visibilityState === "visible" && Date.now() - lastAct < 60000) { activeSec++; if (activeSec % 10 === 0) { try { localStorage.setItem(TKEY, activeSec); } catch (e) {} } } }, 1000);
+  function extra() { try { localStorage.setItem(TKEY, activeSec); } catch (e) {} return " | device " + DEV + " | " + Math.round(activeSec / 60) + " min active"; }
+  function setSync(t) { syncEl.textContent = t; }
+  // "7:RRWR" = question 7: point 1, point 2, formula, answer. R = right on the first try, W = needed retries, - = not done yet.
+  function answersString() {
+    return BANK.map(function (q) { var a = state.answers[q.id]; return q.id + ":" + [0, 1, 2, 3].map(function (i) { return !a || !a.d[i] ? "-" : a.w[i] === 0 ? "R" : "W"; }).join(""); }).join(" ");
+  }
+  var sending = 0;
+  function send() {
+    var name = (state.name || "").trim(); if (!name) return;
+    var t = totals(); if (t.steps === 0) return;
+    if (FORM_URL.indexOf("PASTE") === 0) { setSync("Demo: the form is not connected yet, so nothing is sent."); return; }
+    var body = new URLSearchParams();
+    body.set(F_NAME, name); body.set(F_SCORE, t.right + " first-try right of " + t.steps + " parts (" + t.done + " of " + N + " questions finished)" + extra()); body.set(F_ANS, answersString());
+    sending++; setSync("Sending\u2026");
+    fetch(FORM_URL, { method: "POST", mode: "no-cors", body: body }).then(function () {
+      if (--sending === 0) setSync("Sent to your teacher at " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + ".");
+    }, function () { sending--; setSync("Could not send. Check your internet. Your next answer will send everything again."); });
+  }
+  nameEl.addEventListener("input", function () { state.name = nameEl.value; save(); });
+})();
+</script>
+</body>
+</html>

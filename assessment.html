@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Assessment: Lines, Slopes and Equations</title>
+<style>
+:root{--bg:#f3f6fb;--surface:#fff;--ink:#14213d;--muted:#5a6688;--line:#d8dfee;--accent:#2457c5;--accent-ink:#fff;--good:#1b7a45;--good-soft:#def3e6;--bad:#b3261e;--bad-soft:#fbe5e3;--font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+@media (prefers-color-scheme:dark){:root{--bg:#0e1526;--surface:#161e33;--ink:#e8edf9;--muted:#9aa7c7;--line:#2a3556;--accent:#7ea6ff;--accent-ink:#0e1526;--good:#5fd38d;--good-soft:#15352a;--bad:#ff8a80;--bad-soft:#3d1f22;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 var(--font);padding:24px 16px 56px}
+.shell{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1{margin:0;font-size:1.9rem;line-height:1.15}
+.sub{margin:4px 0 0;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.card.right{border-color:var(--good);background:var(--good-soft)}
+.card.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.q{font-weight:700;margin:0 0 8px}
+.opt{display:flex;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px;margin-top:6px;cursor:pointer;background:var(--surface)}
+.opt input{width:20px;height:20px}
+input[type=text]{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);width:100%;max-width:240px}
+input[type=text]:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+table{border-collapse:collapse;margin:6px 0}td,th{border:1px solid var(--line);padding:6px 16px;text-align:center}
+button{font:inherit;font-weight:700;padding:12px 22px;border:0;border-radius:10px;background:var(--accent);color:var(--accent-ink);cursor:pointer}
+button:disabled{opacity:.5;cursor:default}
+.mark{font-weight:700;margin-top:8px}
+.right .mark{color:var(--good)}.wrong .mark{color:var(--bad)}
+.note{color:var(--muted);font-size:.92rem}
+svg{max-width:100%;height:auto}
+#result{font-size:1.3rem;font-weight:700}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <h1>Assessment: Lines, Slopes and Equations</h1>
+    <p class="sub">10 questions. You get one try, so check each answer before you submit. Type whole numbers only (like -3 or 12).</p>
+  </header>
+  <div class="card"><label for="nm"><b>Your name</b></label><br><input type="text" id="nm" autocomplete="off"></div>
+  <div id="qs" style="display:flex;flex-direction:column;gap:16px"></div>
+  <div><button id="go">Submit my test</button> <span class="note" id="msg"></span></div>
+  <div id="result" role="status"></div>
+</div>
+<script>
+(function () {
+  var FORM_URL = "PASTE_FORM_URL_HERE";   // ends in /formResponse
+  var F_NAME = "entry.PASTE_NAME", F_SCORE = "entry.PASTE_SCORE", F_ANS = "entry.PASTE_ANSWERS";
+  var KEY = "assessment.v1";
+
+  function graphSvg() {
+    var s = 22, o = 110, h = 220, p = '<svg width="220" height="220" viewBox="0 0 220 220" role="img" aria-label="Graph of a line through (0, -2) and (2, 2)"><rect width="220" height="220" fill="none"/>';
+    for (var i = -5; i <= 5; i++) {
+      var v = o + i * s;
+      p += '<line x1="' + v + '" y1="0" x2="' + v + '" y2="220" stroke="#999" stroke-opacity=".25"/><line x1="0" y1="' + v + '" x2="220" y2="' + v + '" stroke="#999" stroke-opacity=".25"/>';
+    }
+    p += '<line x1="0" y1="110" x2="220" y2="110" stroke="currentColor" stroke-width="1.5"/><line x1="110" y1="0" x2="110" y2="220" stroke="currentColor" stroke-width="1.5"/>';
+    // y = 2x - 2 from x=-4 to x=4
+    p += '<line x1="' + (o - 4 * s) + '" y1="' + (o + 10 * s) + '" x2="' + (o + 4 * s) + '" y2="' + (o - 6 * s) + '" stroke="#2457c5" stroke-width="3"/>';
+    p += '<circle cx="110" cy="' + (o + 2 * s) + '" r="5" fill="#2457c5"/><circle cx="' + (o + 2 * s) + '" cy="' + (o - 2 * s) + '" r="5" fill="#2457c5"/></svg>';
+    return p;
+  }
+
+  var Q = [
+    { t: "Find the slope of the line through (2, 3) and (6, 11).", a: "2" },
+    { t: "Find the slope of the line through (-1, 4) and (3, -4).", a: "-2" },
+    { t: "What is the y-intercept of y = -3x + 7?", mc: ["-3", "3", "7", "-7"], a: 2 },
+    { t: "What is the slope of y = 5x - 8?", mc: ["5", "-8", "8", "-5"], a: 0 },
+    { t: "The table shows a line. Which equation matches it?", html: '<table><tr><th>x</th><td>0</td><td>1</td><td>2</td><td>3</td></tr><tr><th>y</th><td>5</td><td>8</td><td>11</td><td>14</td></tr></table>', mc: ["y = 5x + 3", "y = 3x + 5", "y = 3x - 5", "y = 8x + 5"], a: 1 },
+    { t: "Which equation matches the graph?", html: graphSvg(), mc: ["y = 2x - 2", "y = -2x + 2", "y = 2x + 2", "y = x - 2"], a: 0 },
+    { t: "Solve for x:  3(x - 2) + 4 = 19", a: "7" },
+    { t: "Solve for x:  2x + 5 = 3x - 4", a: "9" },
+    { t: "Simplify by combining like terms:  4x + 3 - x + 7", mc: ["3x + 10", "5x + 10", "3x + 4", "4x + 10"], a: 0 },
+    { t: "Is the point (3, 7) on the line y = 2x + 1?", mc: ["Yes, because 2(3) + 1 = 7", "No, because 2(3) + 1 = 6", "No, because 2(3) + 1 = 8", "Yes, because 3 + 7 = 10"], a: 0 }
+  ];
+
+  var box = document.getElementById("qs"), nm = document.getElementById("nm"), go = document.getElementById("go"), msg = document.getElementById("msg"), res = document.getElementById("result");
+  function load() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } }
+  function save(s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
+  var st = load(); st.ans = st.ans || {};
+  function device() {
+    try { var d = localStorage.getItem("deviceCode.v1"); if (!d) { d = Math.random().toString(36).slice(2, 8); localStorage.setItem("deviceCode.v1", d); } return d; } catch (e) { return "none"; }
+  }
+
+  Q.forEach(function (q, i) {
+    var c = document.createElement("div"); c.className = "card"; c.id = "q" + i;
+    var h = '<p class="q">' + (i + 1) + ". " + q.t + "</p>" + (q.html || "");
+    if (q.mc) q.mc.forEach(function (o, j) { h += '<label class="opt"><input type="radio" name="q' + i + '" value="' + j + '"> <span>' + o + "</span></label>"; });
+    else h += '<input type="text" inputmode="text" autocomplete="off" aria-label="Answer to question ' + (i + 1) + '" id="t' + i + '">';
+    h += '<div class="mark" aria-live="polite"></div>';
+    c.innerHTML = h; box.appendChild(c);
+  });
+
+  function val(i) {
+    var q = Q[i];
+    if (q.mc) { var r = document.querySelector('input[name="q' + i + '"]:checked'); return r ? +r.value : null; }
+    var v = document.getElementById("t" + i).value.trim().replace(/\s+/g, "").replace("−", "-");
+    return v === "" ? null : v;
+  }
+  function setVal(i, v) {
+    if (v == null) return;
+    var q = Q[i];
+    if (q.mc) { var r = document.querySelector('input[name="q' + i + '"][value="' + v + '"]'); if (r) r.checked = true; }
+    else document.getElementById("t" + i).value = v;
+  }
+  function lock() {
+    document.querySelectorAll("input").forEach(function (e) { e.disabled = true; });
+    go.disabled = true;
+  }
+  function show(done) {
+    var right = 0, letters = [];
+    Q.forEach(function (q, i) {
+      var ok = String(done.ans[i]) === String(q.a);
+      if (ok) right++; letters.push((i + 1) + ":" + (ok ? "R" : "W"));
+      var c = document.getElementById("q" + i);
+      c.className = "card " + (ok ? "right" : "wrong");
+      c.querySelector(".mark").textContent = ok ? "Right" : "Wrong";
+    });
+    res.textContent = "Score: " + right + " out of " + Q.length;
+    return { right: right, str: letters.join(" ") };
+  }
+  function send(done, r) {
+    if (FORM_URL.indexOf("PASTE") === 0) { msg.textContent = "Demo: the form is not connected yet, so nothing is sent."; return; }
+    var b = new URLSearchParams();
+    b.set(F_NAME, done.name); b.set(F_SCORE, r.right + "/" + Q.length + " | device " + device()); b.set(F_ANS, r.str);
+    fetch(FORM_URL, { method: "POST", mode: "no-cors", body: b }).then(function () { msg.textContent = "Submitted. You are done."; }, function () { msg.textContent = "Could not send. Check your internet and tell your teacher."; });
+  }
+
+  nm.value = st.name || "";
+  nm.addEventListener("input", function () { st.name = nm.value; save(st); });
+  if (st.done) { Q.forEach(function (q, i) { setVal(i, st.done.ans[i]); }); nm.value = st.done.name; lock(); show(st.done); msg.textContent = "You already submitted this test."; }
+  else {
+    Q.forEach(function (q, i) { setVal(i, st.ans[i]); });
+    box.addEventListener("input", function () { Q.forEach(function (q, i) { st.ans[i] = val(i); }); save(st); });
+    go.addEventListener("click", function () {
+      if (!nm.value.trim()) { msg.textContent = "Type your name first."; nm.focus(); return; }
+      var open = Q.map(function (q, i) { return val(i) == null ? i + 1 : 0; }).filter(Boolean);
+      if (open.length) { msg.textContent = "Answer question " + open[0] + " first."; document.getElementById("q" + (open[0] - 1)).scrollIntoView({ block: "center" }); return; }
+      var ans = {}; Q.forEach(function (q, i) { ans[i] = val(i); });
+      st.done = { name: nm.value.trim(), ans: ans }; save(st);
+      lock(); var r = show(st.done); send(st.done, r);
+      res.scrollIntoView({ block: "center" });
+    });
+  }
+})();
+</script>
+</body>
+</html>
